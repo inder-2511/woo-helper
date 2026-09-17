@@ -1,3 +1,14 @@
+import { API_BASE_URL } from "../services/api";
+
+const apiTarget = (() => {
+  try {
+    const u = new URL(API_BASE_URL);
+    return u.port || u.hostname;
+  } catch {
+    return API_BASE_URL;
+  }
+})();
+
 const stats = [
   {
     label: "Order Actions",
@@ -13,8 +24,8 @@ const stats = [
   },
   {
     label: "API Target",
-    value: "5000",
-    detail: "Local WooCommerce service",
+    value: apiTarget,
+    detail: API_BASE_URL,
     tone: "text-yellow-300",
   },
 ];
