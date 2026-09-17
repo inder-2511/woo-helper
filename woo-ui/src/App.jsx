@@ -1,243 +1,78 @@
-import { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import Dashboard from "./pages/Dashboard";
-import CreateOrder from "./pages/orders/CreateOrder";
-import UpdateOrder from "./pages/orders/updateOrder";
-import CreateSimpleProduct from "./pages/products/CreateSimpleProduct";
-import CreateVariableProduct from "./pages/products/CreateVariableProduct";
-import RetrieveProduct from "./pages/products/RetrieveProduct";
-import FetchAllProducts from "./pages/products/FetchAllProducts";
-import DuplicateProduct from "./pages/products/DuplicateProduct";
+import Settings from "./pages/Settings";
+import CustomersPage from "./pages/CustomersPage";
+import CouponsPage from "./pages/CouponsPage";
 
-export default function App() {
-  const [section, setSection] = useState("dashboard");
-  const [active, setActive] = useState("dashboard");
-  const [logs, setLogs] = useState([]);
+import ListOrdersPage from "./pages/orders/ListOrdersPage";
+import CreateOrderPage from "./pages/orders/CreateOrderPage";
+import UpdateOrderPage from "./pages/orders/UpdateOrderPage";
+import DuplicateOrderPage from "./pages/orders/DuplicateOrderPage";
+import FetchOrderPage from "./pages/orders/FetchOrderPage";
 
-  const addLog = (msg) => {
-    setLogs((prev) => [{ id: Date.now(), message: msg }, ...prev.slice(0, 20)]);
-  };
+import ListProductsPage from "./pages/products/ListProductsPage";
+import CreateSimpleProductPage from "./pages/products/CreateSimpleProductPage";
+import CreateVariableProductPage from "./pages/products/CreateVariableProductPage";
+import DuplicateProductPage from "./pages/products/DuplicateProductPage";
+import DeleteProductPage from "./pages/products/DeleteProductPage";
+import FetchProductPage from "./pages/products/FetchProductPage";
 
-  const handleSectionChange = (sec) => {
-    setSection(sec);
+import { ThemeProvider } from "./context/ThemeContext";
+import { ToastProvider } from "./context/ToastContext";
+import { ActivityProvider } from "./context/ActivityContext";
+import { SavedStoresProvider } from "./context/SavedStoresContext";
 
-    if (sec === "dashboard") setActive("dashboard");
-    if (sec === "orders") setActive("orders");
-    if (sec === "products") setActive("simple");
-  };
-
-  const handleNavigate = (nextSection, nextActive) => {
-    setSection(nextSection);
-    setActive(nextActive);
-  };
-
+function App() {
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
-      {/* SIDEBAR */}
-      <div className="w-72 bg-gray-800 p-6 flex flex-col justify-between">
-        <div>
-          <h1 className="text-xl font-bold mb-8">WooCommerce Actions</h1>
+    <ThemeProvider>
+      <ToastProvider>
+        <ActivityProvider>
+          <SavedStoresProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
 
-          <div className="space-y-3">
-            {/* DASHBOARD */}
-            <button
-              onClick={() => handleSectionChange("dashboard")}
-              className={`block w-full text-left px-3 py-2 rounded ${
-                section === "dashboard" ? "bg-blue-600" : "hover:bg-gray-700"
-              }`}
-            >
-              Dashboard
-            </button>
+                <Route path="/orders" element={<ListOrdersPage />} />
+                <Route path="/orders/create" element={<CreateOrderPage />} />
+                <Route path="/orders/update" element={<UpdateOrderPage />} />
+                <Route
+                  path="/orders/duplicate"
+                  element={<DuplicateOrderPage />}
+                />
+                <Route path="/orders/fetch" element={<FetchOrderPage />} />
 
-            {/* ORDERS */}
-            <div>
-              <button
-                onClick={() => handleSectionChange("orders")}
-                className={`block w-full text-left px-3 py-2 rounded ${
-                  section === "orders" ? "bg-blue-600" : "hover:bg-gray-700"
-                }`}
-              >
-                Orders
-              </button>
+                <Route path="/products" element={<ListProductsPage />} />
+                <Route
+                  path="/products/create-simple"
+                  element={<CreateSimpleProductPage />}
+                />
+                <Route
+                  path="/products/create-variable"
+                  element={<CreateVariableProductPage />}
+                />
+                <Route
+                  path="/products/duplicate"
+                  element={<DuplicateProductPage />}
+                />
+                <Route
+                  path="/products/delete"
+                  element={<DeleteProductPage />}
+                />
+                <Route path="/products/fetch" element={<FetchProductPage />} />
 
-              {section === "orders" && (
-                <div className="ml-4 mt-2 space-y-2 text-sm">
-                  <button
-                    onClick={() => setActive("orders")}
-                    className={`block w-full text-left px-3 py-1 rounded ${
-                      active === "orders" ? "bg-gray-700" : "hover:bg-gray-700"
-                    }`}
-                  >
-                    Create Order
-                  </button>
+                <Route path="/customers" element={<CustomersPage />} />
+                <Route path="/coupons" element={<CouponsPage />} />
+                <Route path="/settings" element={<Settings />} />
 
-                  <button
-                    onClick={() => setActive("updateOrder")}
-                    className={`block w-full text-left px-3 py-1 rounded ${
-                      active === "updateOrder"
-                        ? "bg-gray-700"
-                        : "hover:bg-gray-700"
-                    }`}
-                  >
-                    Update Order
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* PRODUCTS */}
-            <div>
-              <button
-                onClick={() => handleSectionChange("products")}
-                className={`block w-full text-left px-3 py-2 rounded ${
-                  section === "products" ? "bg-blue-600" : "hover:bg-gray-700"
-                }`}
-              >
-                Products {section === "products" ? "" : ""}
-              </button>
-
-              {/* SUB MENU */}
-              {section === "products" && (
-                <div className="ml-4 mt-2 space-y-2 text-sm">
-                  <button
-                    onClick={() => setActive("simple")}
-                    className={`block w-full text-left px-3 py-1 rounded ${
-                      active === "simple" ? "bg-gray-700" : "hover:bg-gray-700"
-                    }`}
-                  >
-                    Create Simple
-                  </button>
-
-                  <button
-                    onClick={() => setActive("variable")}
-                    className={`block w-full text-left px-3 py-1 rounded ${
-                      active === "variable"
-                        ? "bg-gray-700"
-                        : "hover:bg-gray-700"
-                    }`}
-                  >
-                    Create Variable
-                  </button>
-
-                  <button
-                    onClick={() => setActive("fetchProduct")}
-                    className={`block w-full text-left px-3 py-1 rounded ${
-                      active === "fetchProduct"
-                        ? "bg-gray-700"
-                        : "hover:bg-gray-700"
-                    }`}
-                  >
-                    Fetch Single
-                  </button>
-
-                  <button
-                    onClick={() => setActive("fetchAll")}
-                    className={`block w-full text-left px-3 py-1 rounded ${
-                      active === "fetchAll"
-                        ? "bg-gray-700"
-                        : "hover:bg-gray-700"
-                    }`}
-                  >
-                    Fetch All
-                  </button>
-
-                  <button
-                    onClick={() => setActive("duplicate")}
-                    className={`block w-full text-left px-3 py-1 rounded ${
-                      active === "duplicate"
-                        ? "bg-gray-700"
-                        : "hover:bg-gray-700"
-                    }`}
-                  >
-                    Duplicate
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* FOOTER */}
-        <div className="text-sm text-gray-400 border-t border-gray-700 pt-4">
-          <p>version {__APP_VERSION__}</p>
-          <p className="text-gray-500">by Inderbir Singh</p>
-
-          <a
-            href="https://github.com/Inderbir001"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-500 hover:text-white"
-          >
-            https://github.com/Inderbir001
-          </a>
-        </div>
-      </div>
-
-      {/* MAIN */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* HEADER */}
-        <div className="p-6 border-b border-gray-800">
-          <h1 className="text-2xl font-bold capitalize">{section}</h1>
-        </div>
-
-        {/* CONTENT */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* MAIN PANEL */}
-          <div className="flex-1 p-6 overflow-y-auto">
-            <div className="bg-gray-800 p-6 rounded-2xl border border-gray-700">
-              {section === "dashboard" && (
-                <Dashboard logs={logs} onNavigate={handleNavigate} />
-              )}
-
-              {section === "orders" && active === "orders" && (
-                <CreateOrder addLog={addLog} />
-              )}
-              {section === "orders" && active === "updateOrder" && (
-                <UpdateOrder addLog={addLog} />
-              )}
-
-              {section === "products" && active === "simple" && (
-                <CreateSimpleProduct addLog={addLog} />
-              )}
-
-              {section === "products" && active === "variable" && (
-                <CreateVariableProduct addLog={addLog} />
-              )}
-
-              {section === "products" && active === "fetchProduct" && (
-                <RetrieveProduct addLog={addLog} />
-              )}
-
-              {section === "products" && active === "fetchAll" && (
-                <FetchAllProducts addLog={addLog} />
-              )}
-
-              {section === "products" && active === "duplicate" && (
-                <DuplicateProduct addLog={addLog} />
-              )}
-            </div>
-          </div>
-
-          {/* ACTIVITY PANEL */}
-          <div className="w-80 border-l border-gray-800 p-4 overflow-y-auto bg-gray-950">
-            <h2 className="font-semibold mb-4">Activity</h2>
-
-            {logs.length === 0 && (
-              <p className="text-gray-500">No activity yet</p>
-            )}
-
-            <div className="space-y-2 text-sm">
-              {logs.map((log) => (
-                <div
-                  key={log.id}
-                  className="bg-gray-800 p-2 rounded border border-gray-700"
-                >
-                  {log.message}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </SavedStoresProvider>
+        </ActivityProvider>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }
+
+export default App;

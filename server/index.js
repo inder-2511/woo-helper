@@ -4,6 +4,10 @@ require("dotenv").config();
 
 const orderRoutes = require("./routes/orderRoutes");
 const productRoutes = require("./routes/productRoutes");
+const customerRoutes = require("./routes/customerRoutes");
+const couponRoutes = require("./routes/couponRoutes");
+const storeRoutes = require("./routes/storeRoutes");
+const { hasEnvCredentials } = require("../utils/wooClient");
 
 const app = express();
 
@@ -18,6 +22,13 @@ const allowedOrigins = (process.env.FRONTEND_ORIGIN || "")
 app.use(
   cors({
     origin: allowedOrigins.length ? allowedOrigins : true,
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "x-woo-url",
+      "x-woo-key",
+      "x-woo-secret",
+    ],
   }),
 );
 app.use(express.json());
@@ -25,6 +36,9 @@ app.use(express.json());
 //Routes
 app.use("/orders", orderRoutes);
 app.use("/products", productRoutes);
+app.use("/customers", customerRoutes);
+app.use("/coupons", couponRoutes);
+app.use("/store", storeRoutes);
 
 //Test Route
 app.get("/", (req, res) => {
@@ -35,11 +49,9 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
   res.json({
     ok: true,
-    storeConfigured: Boolean(
-      process.env.BASE_URL &&
-        process.env.CONSUMER_KEY &&
-        process.env.CONSUMER_SECRET,
-    ),
+    storeConfigured: hasEnvCredentials(),
+    requiresStoreCredentials:
+      process.env.REQUIRE_STORE_CREDENTIALS === "true",
     version: process.env.version || null,
   });
 });

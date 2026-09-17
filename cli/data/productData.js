@@ -22,7 +22,7 @@ const getVariableProductData = (inputs) => ({
   type: "variable",
   status: "publish",
   description: faker.commerce.productDescription(),
-  sku: faker.commerce.sku,
+  sku: faker.string.uuid(),
   attributes: [
     {
       position: 0,

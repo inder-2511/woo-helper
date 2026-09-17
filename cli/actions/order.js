@@ -1,5 +1,6 @@
 const inquirer = require("inquirer");
 const ora = require("ora");
+const { envClient } = require("../../utils/wooClient");
 const {
   createOrder,
 } = require("../../services/orderService");
@@ -27,7 +28,7 @@ async function handleOrder() {
   const spinner = ora(`Processing`).start();
 
   try {
-    await createOrder(inputs, parseInt(inputs.numOfOrders));
+    await createOrder(envClient(), inputs, parseInt(inputs.numOfOrders));
     spinner.succeed("Orders Created Successfully ✅");
   } catch (err) {
     spinner.fail("Failed ❌");

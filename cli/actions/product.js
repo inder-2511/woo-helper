@@ -7,6 +7,7 @@ const {
   duplicateProductService,
   fetchAllProductsService,
 } = require("../../services/productService");
+const { envClient } = require("../../utils/wooClient");
 
 //Create Products
 async function handleProduct() {
@@ -36,7 +37,7 @@ async function handleProduct() {
     const spinner = ora(`Processing`).start();
 
     try {
-      await createProduct(inputs, parseInt(inputs.numOfProducts));
+      await createProduct(envClient(), inputs, parseInt(inputs.numOfProducts));
       spinner.succeed("Products Created ✅");
     } catch (err) {
       spinner.fail("Failed ❌");
@@ -50,6 +51,7 @@ async function handleProduct() {
 
     try {
       await createVariableProduct(
+        envClient(),
         inputs,
         inputs,
         parseInt(inputs.numOfProducts),
@@ -76,8 +78,12 @@ async function retrieveProduct() {
     const spinner = ora(`Processing`).start();
 
     try {
-      await retrieveProductService(Number(inputs.productId));
+      const product = await retrieveProductService(
+        envClient(),
+        Number(inputs.productId),
+      );
       spinner.succeed("Product Data fetched Successfully... 👍");
+      console.log(product);
     } catch (error) {
       spinner.fail("Product fetching Failed 👎 ");
       console.log(error.message);
@@ -102,7 +108,7 @@ async function duplicateProduct() {
   const spinner = ora("Processing").start();
 
   try {
-    await duplicateProductService(input.productId, input.numOfProducts);
+    await duplicateProductService(envClient(), input.productId, input.numOfProducts);
     spinner.succeed("Product Duplication Successful.");
   } catch (error) {
     spinner.fail();
@@ -114,7 +120,7 @@ async function fetchAllProducts() {
   const spinner = ora("Processing...").start();
 
   try {
-    const products = await fetchAllProductsService();
+    const products = await fetchAllProductsService(envClient());
 
     spinner.succeed("Products fetched successfully\n");
 
