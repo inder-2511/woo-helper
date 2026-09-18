@@ -5,6 +5,10 @@ import StoreBadge from "../components/common/StoreBadge";
 import ErrorBanner from "../components/common/ErrorBanner";
 import { LoadingBlock, Spinner } from "../components/common/Spinner";
 import JsonView from "../components/common/JsonView";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import FormField from "../components/ui/FormField";
+import EmptyState from "../components/ui/EmptyState";
 import {
   listCustomers,
   createCustomers,
@@ -14,10 +18,12 @@ import { classifyError } from "../utils/errorClassifier";
 import { useOperation } from "../utils/useOperation";
 import { useToast } from "../context/ToastContext";
 import { useActivity } from "../context/ActivityContext";
+import { useConfirm } from "../context/ConfirmContext";
 
 function CustomersPage() {
   const { showToast } = useToast();
   const { addActivity } = useActivity();
+  const confirm = useConfirm();
 
   const [count, setCount] = useState("1");
   const [page, setPage] = useState(1);
@@ -65,9 +71,9 @@ function CustomersPage() {
 
   const handleDelete = async (customer) => {
     if (
-      !window.confirm(
+      !(await confirm(
         `Permanently delete ${customer.email}? WooCommerce cannot trash customers.`,
-      )
+      ))
     ) {
       return;
     }
@@ -100,37 +106,30 @@ function CustomersPage() {
     >
       <StoreBadge />
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-5">
-        <div className="woo-card">
-          <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-1">
-            Generate customers
-          </h3>
-          <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
-            Names, emails and addresses come from faker. Emails use
-            example.com so they never reach a real inbox.
-          </p>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-5 items-start">
+        <Card
+          title="Generate customers"
+          description="Names, emails and addresses come from faker. Emails use example.com so they never reach a real inbox."
+        >
           <form onSubmit={handleCreate} className="space-y-3">
-            <div>
-              <label className="woo-label">How many</label>
-              <input
-                className="woo-input"
-                type="number"
-                min="1"
-                max="50"
-                value={count}
-                onChange={(e) => setCount(e.target.value)}
-              />
-            </div>
-            <button
+            <FormField
+              label="How many"
+              type="number"
+              min="1"
+              max="50"
+              value={count}
+              onChange={(e) => setCount(e.target.value)}
+            />
+            <Button
               type="submit"
-              disabled={createOp.loading}
-              className="woo-btn-primary w-full"
+              fullWidth
+              icon={Users}
+              loading={createOp.loading}
             >
-              {createOp.loading ? <Spinner /> : <Users size={16} />}
               Create customers
-            </button>
+            </Button>
           </form>
-        </div>
+        </Card>
 
         <div className="xl:col-span-2 space-y-4">
           {createOp.error && (
@@ -148,7 +147,7 @@ function CustomersPage() {
         </div>
       </div>
 
-      <div className="woo-card mb-5">
+      <Card className="mb-5">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -157,33 +156,33 @@ function CustomersPage() {
           }}
           className="flex flex-wrap gap-3 items-end"
         >
-          <div className="flex-1 min-w-[220px]">
-            <label className="woo-label">Search</label>
-            <input
-              className="woo-input"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Name or email"
-            />
-          </div>
-          <button type="submit" className="woo-btn-primary">
-            <Search size={15} />
+          <FormField
+            className="flex-1 min-w-[220px]"
+            label="Search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Name or email"
+          />
+          <Button type="submit" icon={Search}>
             Search
-          </button>
-          <button type="button" onClick={load} className="woo-btn-ghost">
-            {loading ? <Spinner /> : <RefreshCw size={15} />}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            icon={RefreshCw}
+            loading={loading}
+            onClick={load}
+          >
             Refresh
-          </button>
+          </Button>
         </form>
-      </div>
+      </Card>
 
-      <div className="woo-card p-0 overflow-hidden">
+      <Card className="!p-0 overflow-hidden">
         {loading && !data ? (
           <LoadingBlock label="Loading customers..." />
         ) : !data || data.customers.length === 0 ? (
-          <div className="py-12 text-center text-sm text-gray-400 dark:text-slate-500">
-            No customers yet.
-          </div>
+          <EmptyState title="No customers yet." />
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-slate-400">
@@ -232,27 +231,27 @@ function CustomersPage() {
             </tbody>
           </table>
         )}
-      </div>
+      </Card>
 
       {data && data.totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          <Button
+            variant="ghost"
             disabled={page <= 1 || loading}
-            className="woo-btn-ghost"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
             Previous
-          </button>
+          </Button>
           <span className="text-xs text-gray-500 dark:text-slate-400">
             Page {data.page} of {data.totalPages}
           </span>
-          <button
-            onClick={() => setPage((p) => p + 1)}
+          <Button
+            variant="ghost"
             disabled={page >= data.totalPages || loading}
-            className="woo-btn-ghost"
+            onClick={() => setPage((p) => p + 1)}
           >
             Next
-          </button>
+          </Button>
         </div>
       )}
     </MainLayout>

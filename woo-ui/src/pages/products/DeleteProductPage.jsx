@@ -4,11 +4,16 @@ import MainLayout from "../../components/layout/MainLayout";
 import StoreBadge from "../../components/common/StoreBadge";
 import ErrorBanner from "../../components/common/ErrorBanner";
 import JsonView from "../../components/common/JsonView";
-import { Spinner } from "../../components/common/Spinner";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import FormField from "../../components/ui/FormField";
+import SplitLayout from "../../components/ui/SplitLayout";
 import { deleteProduct, batchDeleteProducts } from "../../api/productApi";
 import { useOperation } from "../../utils/useOperation";
+import { useConfirm } from "../../context/ConfirmContext";
 
 function DeleteProductPage() {
+  const confirm = useConfirm();
   const [single, setSingle] = useState("");
   const [bulk, setBulk] = useState("");
 
@@ -22,9 +27,9 @@ function DeleteProductPage() {
     success: (res) => `Deleted ${res.count} products`,
   });
 
-  const submitSingle = (e) => {
+  const submitSingle = async (e) => {
     e.preventDefault();
-    if (!window.confirm(`Permanently delete product #${single}?`)) return;
+    if (!(await confirm(`Permanently delete product #${single}?`))) return;
     singleOp.run(Number(single));
   };
 
@@ -33,18 +38,21 @@ function DeleteProductPage() {
     .map((s) => Number(s.trim()))
     .filter(Boolean);
 
-  const submitBulk = (e) => {
+  const submitBulk = async (e) => {
     e.preventDefault();
     if (!ids.length) return;
     if (
-      !window.confirm(
+      !(await confirm(
         `Permanently delete ${ids.length} products? This cannot be undone.`,
-      )
+      ))
     ) {
       return;
     }
     bulkOp.run(ids);
   };
+
+  const hasSidebar =
+    singleOp.error || bulkOp.error || singleOp.result || bulkOp.result;
 
   return (
     <MainLayout
@@ -61,117 +69,96 @@ function DeleteProductPage() {
         </p>
       </div>
 
-      <div
-        className={`grid grid-cols-1 gap-5 ${
-          singleOp.error ||
-          bulkOp.error ||
-          singleOp.result ||
-          bulkOp.result
-            ? "xl:grid-cols-2"
-            : "max-w-2xl"
-        }`}
+      <SplitLayout
+        sidebar={
+          hasSidebar && (
+            <>
+              {singleOp.error && (
+                <ErrorBanner error={singleOp.error} onDismiss={singleOp.reset} />
+              )}
+              {bulkOp.error && (
+                <ErrorBanner error={bulkOp.error} onDismiss={bulkOp.reset} />
+              )}
+
+              {singleOp.result && (
+                <Card title="Deleted">
+                  <p className="text-sm text-gray-600 dark:text-slate-300">
+                    #{singleOp.result.data?.id} — {singleOp.result.data?.name}
+                  </p>
+                </Card>
+              )}
+
+              {bulkOp.result && (
+                <>
+                  <Card title={`Deleted ${bulkOp.result.count}`}>
+                    <ul className="space-y-1.5">
+                      {bulkOp.result.data.map((p) => (
+                        <li
+                          key={p.id}
+                          className="text-sm text-gray-600 dark:text-slate-300 truncate"
+                        >
+                          #{p.id} — {p.name}
+                        </li>
+                      ))}
+                    </ul>
+                  </Card>
+                  <JsonView data={bulkOp.result.data} />
+                </>
+              )}
+            </>
+          )
+        }
       >
         <div className="space-y-5">
-          <div className="woo-card">
-            <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-4">
-              Delete one
-            </h3>
+          <Card title="Delete one">
             <form onSubmit={submitSingle} className="space-y-4">
-              <div>
-                <label className="woo-label">Product ID</label>
-                <input
-                  className="woo-input"
-                  type="number"
-                  value={single}
-                  onChange={(e) => setSingle(e.target.value)}
-                  placeholder="119"
-                  required
-                />
-              </div>
-              <button
+              <FormField
+                label="Product ID"
+                type="number"
+                value={single}
+                onChange={(e) => setSingle(e.target.value)}
+                placeholder="119"
+                required
+              />
+              <Button
                 type="submit"
-                disabled={singleOp.loading}
-                className="woo-btn-danger w-full"
+                variant="danger"
+                fullWidth
+                icon={Trash2}
+                loading={singleOp.loading}
               >
-                {singleOp.loading ? <Spinner /> : <Trash2 size={16} />}
                 Delete product
-              </button>
+              </Button>
             </form>
-          </div>
+          </Card>
 
-          <div className="woo-card">
-            <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-1">
-              Delete many
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
-              IDs separated by commas, spaces or newlines. Sent in batches of
-              100.
-            </p>
+          <Card
+            title="Delete many"
+            description="IDs separated by commas, spaces or newlines. Sent in batches of 100."
+          >
             <form onSubmit={submitBulk} className="space-y-4">
-              <div>
-                <label className="woo-label">
-                  Product IDs{ids.length ? ` (${ids.length} parsed)` : ""}
-                </label>
-                <textarea
-                  className="woo-input min-h-[110px] font-mono"
-                  value={bulk}
-                  onChange={(e) => setBulk(e.target.value)}
-                  placeholder="119, 120, 121"
-                />
-              </div>
-              <button
+              <FormField
+                label={`Product IDs${ids.length ? ` (${ids.length} parsed)` : ""}`}
+                type="textarea"
+                inputClassName="min-h-[110px] font-mono"
+                value={bulk}
+                onChange={(e) => setBulk(e.target.value)}
+                placeholder="119, 120, 121"
+              />
+              <Button
                 type="submit"
-                disabled={bulkOp.loading || !ids.length}
-                className="woo-btn-danger w-full"
+                variant="danger"
+                fullWidth
+                icon={Trash2}
+                loading={bulkOp.loading}
+                disabled={!ids.length}
               >
-                {bulkOp.loading ? <Spinner /> : <Trash2 size={16} />}
                 Delete {ids.length || ""} products
-              </button>
+              </Button>
             </form>
-          </div>
+          </Card>
         </div>
-
-        <div className="space-y-4">
-          {singleOp.error && (
-            <ErrorBanner error={singleOp.error} onDismiss={singleOp.reset} />
-          )}
-          {bulkOp.error && (
-            <ErrorBanner error={bulkOp.error} onDismiss={bulkOp.reset} />
-          )}
-
-          {singleOp.result && (
-            <div className="woo-card">
-              <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-2">
-                Deleted
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-slate-300">
-                #{singleOp.result.data?.id} — {singleOp.result.data?.name}
-              </p>
-            </div>
-          )}
-
-          {bulkOp.result && (
-            <>
-              <div className="woo-card">
-                <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-3">
-                  Deleted {bulkOp.result.count}
-                </h3>
-                <ul className="space-y-1.5">
-                  {bulkOp.result.data.map((p) => (
-                    <li
-                      key={p.id}
-                      className="text-sm text-gray-600 dark:text-slate-300 truncate"
-                    >
-                      #{p.id} — {p.name}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <JsonView data={bulkOp.result.data} />
-            </>
-          )}
-        </div>
-      </div>
+      </SplitLayout>
     </MainLayout>
   );
 }

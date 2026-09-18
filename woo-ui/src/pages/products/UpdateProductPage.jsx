@@ -5,7 +5,10 @@ import StoreBadge from "../../components/common/StoreBadge";
 import ProductPicker from "../../components/common/ProductPicker";
 import ErrorBanner from "../../components/common/ErrorBanner";
 import JsonView from "../../components/common/JsonView";
-import { Spinner } from "../../components/common/Spinner";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import FormField from "../../components/ui/FormField";
+import SplitLayout from "../../components/ui/SplitLayout";
 import { updateProduct } from "../../api/productApi";
 import { useOperation } from "../../utils/useOperation";
 
@@ -55,14 +58,28 @@ function UpdateProductPage() {
     >
       <StoreBadge />
 
-      <div
-        className={`grid grid-cols-1 gap-5 ${
-          op.error || op.result || !nothingSelected
-            ? "xl:grid-cols-2"
-            : "max-w-2xl"
-        }`}
+      <SplitLayout
+        sidebar={
+          (op.error || op.result || !nothingSelected) && (
+            <>
+              {op.error && <ErrorBanner error={op.error} onDismiss={op.reset} />}
+
+              {!nothingSelected && (
+                <JsonView
+                  data={updateDetails}
+                  label="Payload that will be sent"
+                  defaultOpen
+                />
+              )}
+
+              {op.result && (
+                <JsonView data={op.result.data} label="Updated product" />
+              )}
+            </>
+          )
+        }
       >
-        <div className="woo-card">
+        <Card>
           <form onSubmit={submit} className="space-y-4">
             <div>
               <label className="woo-label">Product</label>
@@ -81,76 +98,36 @@ function UpdateProductPage() {
                   <span className="text-xs font-semibold text-gray-500 dark:text-slate-400 w-32 shrink-0 mt-2.5">
                     {f.label}
                   </span>
-                  {f.type === "select" ? (
-                    <select
-                      className="woo-input"
-                      disabled={!enabled[f.key]}
-                      value={values[f.key] ?? ""}
-                      onChange={(e) =>
-                        setValues((v) => ({ ...v, [f.key]: e.target.value }))
-                      }
-                    >
-                      {f.options.map((o) => (
-                        <option key={o} value={o}>
-                          {o}
-                        </option>
-                      ))}
-                    </select>
-                  ) : f.type === "textarea" ? (
-                    <textarea
-                      className="woo-input min-h-[70px]"
-                      disabled={!enabled[f.key]}
-                      value={values[f.key] ?? ""}
-                      onChange={(e) =>
-                        setValues((v) => ({ ...v, [f.key]: e.target.value }))
-                      }
-                    />
-                  ) : (
-                    <input
-                      className="woo-input"
-                      type={f.type}
-                      disabled={!enabled[f.key]}
-                      value={values[f.key] ?? ""}
-                      onChange={(e) =>
-                        setValues((v) => ({ ...v, [f.key]: e.target.value }))
-                      }
-                    />
-                  )}
+                  <FormField
+                    className="flex-1"
+                    type={f.type}
+                    options={f.options}
+                    disabled={!enabled[f.key]}
+                    value={values[f.key] ?? ""}
+                    onChange={(e) =>
+                      setValues((v) => ({ ...v, [f.key]: e.target.value }))
+                    }
+                  />
                 </div>
               ))}
             </div>
 
-            <button
+            <Button
               type="submit"
-              disabled={op.loading || nothingSelected || !product.productId}
-              className="woo-btn-primary w-full"
+              fullWidth
+              icon={Save}
+              loading={op.loading}
+              disabled={nothingSelected || !product.productId}
             >
-              {op.loading ? <Spinner /> : <Save size={16} />}
               {!product.productId
                 ? "Pick a product first"
                 : nothingSelected
                   ? "Tick a field to enable"
                   : "Update product"}
-            </button>
+            </Button>
           </form>
-        </div>
-
-        <div className="space-y-4">
-          {op.error && <ErrorBanner error={op.error} onDismiss={op.reset} />}
-
-          {!nothingSelected && (
-            <JsonView
-              data={updateDetails}
-              label="Payload that will be sent"
-              defaultOpen
-            />
-          )}
-
-          {op.result && (
-            <JsonView data={op.result.data} label="Updated product" />
-          )}
-        </div>
-      </div>
+        </Card>
+      </SplitLayout>
     </MainLayout>
   );
 }

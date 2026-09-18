@@ -11,28 +11,22 @@ import StoreBadge from "../../components/common/StoreBadge";
 import ErrorBanner from "../../components/common/ErrorBanner";
 import { LoadingBlock, Spinner } from "../../components/common/Spinner";
 import JsonView from "../../components/common/JsonView";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import FormField from "../../components/ui/FormField";
+import Badge, { STATUS_TONE } from "../../components/ui/Badge";
+import EmptyState from "../../components/ui/EmptyState";
 import { listOrders, deleteOrder } from "../../api/orderApi";
 import { classifyError } from "../../utils/errorClassifier";
 import { useToast } from "../../context/ToastContext";
 import { useActivity } from "../../context/ActivityContext";
+import { useConfirm } from "../../context/ConfirmContext";
 import { ORDER_STATUSES } from "../../utils/orderConstants";
-
-const statusStyles = {
-  completed:
-    "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
-  processing:
-    "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-  pending:
-    "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-  cancelled: "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300",
-  refunded:
-    "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
-  failed: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
-};
 
 function ListOrdersPage() {
   const { showToast } = useToast();
   const { addActivity } = useActivity();
+  const confirm = useConfirm();
 
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("");
@@ -74,7 +68,7 @@ function ListOrdersPage() {
   };
 
   const handleDelete = async (order) => {
-    if (!window.confirm(`Permanently delete order #${order.id}?`)) return;
+    if (!(await confirm(`Permanently delete order #${order.id}?`))) return;
     setDeletingId(order.id);
     try {
       await deleteOrder(order.id);
@@ -109,48 +103,49 @@ function ListOrdersPage() {
     >
       <StoreBadge />
 
-      <div className="woo-card mb-5">
-        <form onSubmit={submitSearch} className="flex flex-wrap gap-3 items-end">
-          <div className="flex-1 min-w-[220px]">
-            <label className="woo-label">Search</label>
-            <input
-              className="woo-input"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Customer name or email"
-            />
-          </div>
+      <Card className="mb-5">
+        <form
+          onSubmit={submitSearch}
+          className="flex flex-wrap gap-3 items-end"
+        >
+          <FormField
+            className="flex-1 min-w-[220px]"
+            label="Search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Customer name or email"
+          />
 
-          <div className="w-44">
-            <label className="woo-label">Status</label>
-            <select
-              className="woo-input"
-              value={status}
-              onChange={(e) => {
-                setPage(1);
-                setStatus(e.target.value);
-              }}
-            >
-              <option value="">any</option>
-              {ORDER_STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
+          <FormField
+            className="w-44"
+            label="Status"
+            type="select"
+            value={status}
+            onChange={(e) => {
+              setPage(1);
+              setStatus(e.target.value);
+            }}
+            options={["any", ...ORDER_STATUSES].map((s) => ({
+              value: s === "any" ? "" : s,
+              label: s,
+            }))}
+          />
 
-          <button type="submit" className="woo-btn-primary">
-            <Search size={15} />
+          <Button type="submit" icon={Search}>
             Search
-          </button>
+          </Button>
 
-          <button type="button" onClick={load} className="woo-btn-ghost">
-            {loading ? <Spinner /> : <RefreshCw size={15} />}
+          <Button
+            type="button"
+            variant="ghost"
+            icon={RefreshCw}
+            loading={loading}
+            onClick={load}
+          >
             Refresh
-          </button>
+          </Button>
         </form>
-      </div>
+      </Card>
 
       {error && (
         <div className="mb-5">
@@ -158,13 +153,11 @@ function ListOrdersPage() {
         </div>
       )}
 
-      <div className="woo-card p-0 overflow-hidden">
+      <Card className="!p-0 overflow-hidden">
         {loading && !data ? (
           <LoadingBlock label="Loading orders..." />
         ) : !data || data.orders.length === 0 ? (
-          <div className="py-12 text-center text-sm text-gray-400 dark:text-slate-500">
-            No orders matched.
-          </div>
+          <EmptyState title="No orders matched." />
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-slate-400">
@@ -193,14 +186,9 @@ function ListOrdersPage() {
                       .join(" ") || "—"}
                   </td>
                   <td className="px-5 py-3">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${
-                        statusStyles[o.status] ??
-                        "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300"
-                      }`}
-                    >
+                    <Badge tone={STATUS_TONE[o.status] ?? "gray"}>
                       {o.status}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-5 py-3 text-gray-600 dark:text-slate-300">
                     {o.currency} {o.total}
@@ -230,31 +218,31 @@ function ListOrdersPage() {
             </tbody>
           </table>
         )}
-      </div>
+      </Card>
 
       {data && data.orders.length > 0 && (
         <div className="flex items-center justify-between mt-4">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          <Button
+            variant="ghost"
+            icon={ChevronLeft}
             disabled={page <= 1 || loading}
-            className="woo-btn-ghost"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
-            <ChevronLeft size={15} />
             Previous
-          </button>
+          </Button>
 
           <span className="text-xs text-gray-500 dark:text-slate-400">
             Page {data.page} of {totalPages}
           </span>
 
-          <button
-            onClick={() => setPage((p) => p + 1)}
+          <Button
+            variant="ghost"
             disabled={page >= totalPages || loading}
-            className="woo-btn-ghost"
+            onClick={() => setPage((p) => p + 1)}
           >
             Next
             <ChevronRight size={15} />
-          </button>
+          </Button>
         </div>
       )}
 

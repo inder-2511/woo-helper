@@ -4,9 +4,12 @@ import MainLayout from "../../components/layout/MainLayout";
 import StoreBadge from "../../components/common/StoreBadge";
 import ErrorBanner from "../../components/common/ErrorBanner";
 import JsonView from "../../components/common/JsonView";
-import { Spinner } from "../../components/common/Spinner";
 import ProductPicker from "../../components/common/ProductPicker";
 import AddressPicker from "../../components/common/AddressPicker";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import FormField from "../../components/ui/FormField";
+import SplitLayout from "../../components/ui/SplitLayout";
 import { createCustomOrder } from "../../api/orderApi";
 import { useOperation } from "../../utils/useOperation";
 import { ORDER_STATUSES, CURRENCIES } from "../../utils/orderConstants";
@@ -84,25 +87,43 @@ function CustomOrderPage() {
     >
       <StoreBadge />
 
-      <div
-        className={`grid grid-cols-1 gap-5 ${
-          op.error || op.result ? "xl:grid-cols-2" : "max-w-2xl"
-        }`}
+      <SplitLayout
+        sidebar={
+          (op.error || op.result) && (
+            <>
+              {op.error && <ErrorBanner error={op.error} onDismiss={op.reset} />}
+
+              {op.result && (
+                <>
+                  <Card>
+                    <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-1">
+                      Order #{op.result.data.id} created
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-slate-300">
+                      {op.result.data.currency} {op.result.data.total} ·{" "}
+                      {op.result.data.status}
+                    </p>
+                  </Card>
+                  <JsonView
+                    data={op.result.data}
+                    label="Created order"
+                    defaultOpen
+                  />
+                </>
+              )}
+            </>
+          )
+        }
       >
         <form onSubmit={submit} className="space-y-5">
-          <div className="woo-card">
+          <Card>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-gray-800 dark:text-slate-100">
                 Line items
               </h3>
-              <button
-                type="button"
-                onClick={addLineItem}
-                className="woo-btn-ghost px-3 py-1.5 text-xs"
-              >
-                <Plus size={13} />
+              <Button variant="ghost" size="sm" icon={Plus} onClick={addLineItem}>
                 Add item
-              </button>
+              </Button>
             </div>
 
             <div className="space-y-3">
@@ -116,31 +137,23 @@ function CustomOrderPage() {
                     onChange={(patch) => updateLineItem(li.key, patch)}
                   />
                   <div className="grid grid-cols-[1fr_1fr_auto] gap-2 items-end">
-                    <div>
-                      <label className="woo-label">Quantity</label>
-                      <input
-                        className="woo-input"
-                        type="number"
-                        min="1"
-                        value={li.quantity}
-                        onChange={(e) =>
-                          updateLineItem(li.key, { quantity: e.target.value })
-                        }
-                      />
-                    </div>
-                    <div>
-                      <label className="woo-label">
-                        Price override (optional)
-                      </label>
-                      <input
-                        className="woo-input"
-                        value={li.price}
-                        onChange={(e) =>
-                          updateLineItem(li.key, { price: e.target.value })
-                        }
-                        placeholder="uses product price"
-                      />
-                    </div>
+                    <FormField
+                      label="Quantity"
+                      type="number"
+                      min="1"
+                      value={li.quantity}
+                      onChange={(e) =>
+                        updateLineItem(li.key, { quantity: e.target.value })
+                      }
+                    />
+                    <FormField
+                      label="Price override (optional)"
+                      value={li.price}
+                      onChange={(e) =>
+                        updateLineItem(li.key, { price: e.target.value })
+                      }
+                      placeholder="uses product price"
+                    />
                     <button
                       type="button"
                       onClick={() => removeLineItem(li.key)}
@@ -153,112 +166,80 @@ function CustomOrderPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
 
-          <div className="woo-card">
+          <Card>
             <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-4">
               Order settings
             </h3>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="woo-label">Status</label>
-                <select
-                  className="woo-input"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                >
-                  {ORDER_STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="woo-label">Currency</label>
-                <select
-                  className="woo-input"
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                >
-                  {CURRENCIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="woo-label">Payment method key</label>
-                <input
-                  className="woo-input"
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  placeholder="bacs"
-                />
-              </div>
-              <div>
-                <label className="woo-label">Payment method title</label>
-                <input
-                  className="woo-input"
-                  value={paymentMethodTitle}
-                  onChange={(e) => setPaymentMethodTitle(e.target.value)}
-                  placeholder="Direct bank transfer"
-                />
-              </div>
-              <div>
-                <label className="woo-label">Shipping method title</label>
-                <input
-                  className="woo-input"
-                  value={shippingTitle}
-                  onChange={(e) => setShippingTitle(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="woo-label">Shipping total</label>
-                <input
-                  className="woo-input"
-                  value={shippingTotal}
-                  onChange={(e) => setShippingTotal(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="woo-label">Coupon code (optional)</label>
-                <input
-                  className="woo-input"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  placeholder="SAVE10"
-                />
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <label className="woo-label">Customer note</label>
-              <textarea
-                className="woo-input min-h-[70px]"
-                value={customerNote}
-                onChange={(e) => setCustomerNote(e.target.value)}
+              <FormField
+                label="Status"
+                type="select"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                options={ORDER_STATUSES}
+              />
+              <FormField
+                label="Currency"
+                type="select"
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                options={CURRENCIES}
+              />
+              <FormField
+                label="Payment method key"
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                placeholder="bacs"
+              />
+              <FormField
+                label="Payment method title"
+                value={paymentMethodTitle}
+                onChange={(e) => setPaymentMethodTitle(e.target.value)}
+                placeholder="Direct bank transfer"
+              />
+              <FormField
+                label="Shipping method title"
+                value={shippingTitle}
+                onChange={(e) => setShippingTitle(e.target.value)}
+              />
+              <FormField
+                label="Shipping total"
+                value={shippingTotal}
+                onChange={(e) => setShippingTotal(e.target.value)}
+              />
+              <FormField
+                label="Coupon code (optional)"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+                placeholder="SAVE10"
               />
             </div>
-          </div>
 
-          <div className="woo-card">
+            <FormField
+              className="mt-4"
+              label="Customer note"
+              type="textarea"
+              value={customerNote}
+              onChange={(e) => setCustomerNote(e.target.value)}
+            />
+          </Card>
+
+          <Card>
             <AddressPicker
               label="Billing address"
               value={billing}
               onChange={setBilling}
             />
 
-            <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400 mt-4">
-              <input
-                type="checkbox"
-                checked={shipToSameAsBilling}
-                onChange={(e) => setShipToSameAsBilling(e.target.checked)}
-                className="w-4 h-4 accent-purple-600"
-              />
-              Ship to the same address
-            </label>
+            <FormField
+              className="mt-4"
+              type="checkbox"
+              label="Ship to the same address"
+              checked={shipToSameAsBilling}
+              onChange={(e) => setShipToSameAsBilling(e.target.checked)}
+            />
 
             {!shipToSameAsBilling && (
               <div className="mt-4">
@@ -269,40 +250,21 @@ function CustomOrderPage() {
                 />
               </div>
             )}
-          </div>
+          </Card>
 
-          <button
+          <Button
             type="submit"
-            disabled={op.loading || validItems.length === 0}
-            className="woo-btn-primary w-full"
+            fullWidth
+            icon={Sliders}
+            loading={op.loading}
+            disabled={validItems.length === 0}
           >
-            {op.loading ? <Spinner /> : <Sliders size={16} />}
             {validItems.length === 0
               ? "Add a product to enable"
               : "Create custom order"}
-          </button>
+          </Button>
         </form>
-
-        <div className="space-y-4">
-          {op.error && <ErrorBanner error={op.error} onDismiss={op.reset} />}
-
-          {op.result && (
-            <div className="woo-card">
-              <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-1">
-                Order #{op.result.data.id} created
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-slate-300">
-                {op.result.data.currency} {op.result.data.total} ·{" "}
-                {op.result.data.status}
-              </p>
-            </div>
-          )}
-
-          {op.result && (
-            <JsonView data={op.result.data} label="Created order" defaultOpen />
-          )}
-        </div>
-      </div>
+      </SplitLayout>
     </MainLayout>
   );
 }

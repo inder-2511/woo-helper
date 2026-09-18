@@ -1,54 +1,87 @@
 import { useState } from "react";
 import { ShieldAlert } from "lucide-react";
 import { useSavedStores } from "../../context/SavedStoresContext";
+import { useSavedAddresses } from "../../context/SavedAddressesContext";
 import { useToast } from "../../context/ToastContext";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
 
 function DangerZoneSection() {
   const { stores, clearStores } = useSavedStores();
+  const { addresses, clearAddresses } = useSavedAddresses();
   const { showToast } = useToast();
-  const [confirming, setConfirming] = useState(false);
+  const [confirming, setConfirming] = useState(null); // "stores" | "addresses" | null
 
-  const handleClear = () => {
+  const handleClearStores = () => {
     clearStores();
-    setConfirming(false);
+    setConfirming(null);
     showToast("Saved stores cleared", "success");
   };
 
-  return (
-    <div className="woo-card border-red-100 dark:border-red-900/50">
-      <div className="flex items-center gap-2 mb-1">
-        <ShieldAlert size={18} className="text-red-500" />
-        <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">
-          Danger zone
-        </h2>
-      </div>
-      <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
-        Removes every saved store and its API keys from this browser. Nothing on
-        the WooCommerce side is touched.
-      </p>
+  const handleClearAddresses = () => {
+    clearAddresses();
+    setConfirming(null);
+    showToast("Saved addresses cleared", "success");
+  };
 
-      {confirming ? (
-        <div className="flex items-center gap-3">
-          <button onClick={handleClear} className="woo-btn-danger">
-            Yes, clear {stores.length} store{stores.length === 1 ? "" : "s"}
-          </button>
-          <button
-            onClick={() => setConfirming(false)}
-            className="woo-btn-ghost"
-          >
-            Cancel
-          </button>
+  return (
+    <Card
+      title="Danger zone"
+      icon={ShieldAlert}
+      danger
+      description="Clears data from this browser only — nothing on the WooCommerce side is touched."
+    >
+      <div className="space-y-4">
+        <div>
+          <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">
+            Removes every saved store and its API keys.
+          </p>
+          {confirming === "stores" ? (
+            <div className="flex items-center gap-3">
+              <Button variant="danger" onClick={handleClearStores}>
+                Yes, clear {stores.length} store{stores.length === 1 ? "" : "s"}
+              </Button>
+              <Button variant="ghost" onClick={() => setConfirming(null)}>
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="danger"
+              disabled={stores.length === 0}
+              onClick={() => setConfirming("stores")}
+            >
+              Clear saved stores
+            </Button>
+          )}
         </div>
-      ) : (
-        <button
-          onClick={() => setConfirming(true)}
-          disabled={stores.length === 0}
-          className="woo-btn-danger"
-        >
-          Clear saved stores
-        </button>
-      )}
-    </div>
+
+        <div className="pt-3 border-t border-gray-100 dark:border-slate-700">
+          <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">
+            Removes every saved address, including the two seeded examples.
+          </p>
+          {confirming === "addresses" ? (
+            <div className="flex items-center gap-3">
+              <Button variant="danger" onClick={handleClearAddresses}>
+                Yes, clear {addresses.length} address
+                {addresses.length === 1 ? "" : "es"}
+              </Button>
+              <Button variant="ghost" onClick={() => setConfirming(null)}>
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="danger"
+              disabled={addresses.length === 0}
+              onClick={() => setConfirming("addresses")}
+            >
+              Clear saved addresses
+            </Button>
+          )}
+        </div>
+      </div>
+    </Card>
   );
 }
 

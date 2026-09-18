@@ -22,6 +22,7 @@ import FetchProductPage from "./pages/products/FetchProductPage";
 
 import { ThemeProvider } from "./context/ThemeContext";
 import { ToastProvider } from "./context/ToastContext";
+import { ConfirmProvider } from "./context/ConfirmContext";
 import { ActivityProvider } from "./context/ActivityContext";
 import { SavedStoresProvider } from "./context/SavedStoresContext";
 import { SavedAddressesProvider } from "./context/SavedAddressesContext";
@@ -31,6 +32,7 @@ function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
+        <ConfirmProvider>
         <ActivityProvider>
           <SavedStoresProvider>
             <SavedAddressesProvider>
@@ -101,6 +103,7 @@ function App() {
             </SavedAddressesProvider>
           </SavedStoresProvider>
         </ActivityProvider>
+        </ConfirmProvider>
       </ToastProvider>
     </ThemeProvider>
   );

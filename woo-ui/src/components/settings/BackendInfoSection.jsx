@@ -4,6 +4,7 @@ import { API_BASE_URL } from "../../api/axios";
 import { getHealth } from "../../api/storeApi";
 import { classifyError } from "../../utils/errorClassifier";
 import { Spinner } from "../common/Spinner";
+import Card from "../ui/Card";
 
 function Row({ label, value }) {
   return (
@@ -39,17 +40,11 @@ function BackendInfoSection() {
   }, []);
 
   return (
-    <div className="woo-card">
-      <div className="flex items-center gap-2 mb-1">
-        <Server size={18} className="text-purple-500" />
-        <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">
-          Backend
-        </h2>
-      </div>
-      <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
-        Set at build time via VITE_API_URL.
-      </p>
-
+    <Card
+      title="Backend"
+      icon={Server}
+      description="Set at build time via VITE_API_URL."
+    >
       <div>
         <Row label="API URL" value={API_BASE_URL} />
 
@@ -88,7 +83,7 @@ function BackendInfoSection() {
           </>
         )}
       </div>
-    </div>
+    </Card>
   );
 }
 

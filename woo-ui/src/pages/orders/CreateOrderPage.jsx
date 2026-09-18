@@ -5,9 +5,12 @@ import MainLayout from "../../components/layout/MainLayout";
 import StoreBadge from "../../components/common/StoreBadge";
 import ErrorBanner from "../../components/common/ErrorBanner";
 import JsonView from "../../components/common/JsonView";
-import { Spinner } from "../../components/common/Spinner";
 import ProductPicker from "../../components/common/ProductPicker";
 import AddressPicker from "../../components/common/AddressPicker";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import FormField from "../../components/ui/FormField";
+import SplitLayout from "../../components/ui/SplitLayout";
 import { createOrder } from "../../api/orderApi";
 import { useOperation } from "../../utils/useOperation";
 import { useOrderDefaults } from "../../context/OrderDefaultsContext";
@@ -71,25 +74,50 @@ function CreateOrderPage() {
     >
       <StoreBadge />
 
-      <div
-        className={`grid grid-cols-1 gap-5 ${
-          op.error || op.result ? "xl:grid-cols-2" : "max-w-2xl"
-        }`}
+      <SplitLayout
+        sidebar={
+          (op.error || op.result) && (
+            <>
+              {op.error && <ErrorBanner error={op.error} onDismiss={op.reset} />}
+
+              {op.result && (
+                <>
+                  <Card title={`Created ${op.result.count}`}>
+                    <ul className="space-y-2">
+                      {op.result.data.map((o) => (
+                        <li
+                          key={o.id}
+                          className="flex items-center justify-between text-sm px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-900"
+                        >
+                          <span className="text-gray-800 dark:text-slate-100">
+                            #{o.id} —{" "}
+                            {[o.billing?.first_name, o.billing?.last_name]
+                              .filter(Boolean)
+                              .join(" ")}
+                          </span>
+                          <span className="text-xs text-gray-400 shrink-0 ml-3">
+                            {o.currency} {o.total}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </Card>
+                  <JsonView data={op.result.data} />
+                </>
+              )}
+            </>
+          )
+        }
       >
         <form onSubmit={submit} className="space-y-5">
-          <div className="woo-card">
+          <Card>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-gray-800 dark:text-slate-100">
                 Products
               </h3>
-              <button
-                type="button"
-                onClick={addLine}
-                className="woo-btn-ghost px-3 py-1.5 text-xs"
-              >
-                <Plus size={13} />
+              <Button variant="ghost" size="sm" icon={Plus} onClick={addLine}>
                 Add product
-              </button>
+              </Button>
             </div>
 
             <div className="space-y-3">
@@ -108,20 +136,15 @@ function CreateOrderPage() {
                     }
                   />
                   <div className="grid grid-cols-[1fr_auto] gap-2 items-end">
-                    <div>
-                      <label className="woo-label">
-                        Quantity per order
-                      </label>
-                      <input
-                        className="woo-input"
-                        type="number"
-                        min="1"
-                        value={li.qty}
-                        onChange={(e) =>
-                          updateLine(li.key, { qty: e.target.value })
-                        }
-                      />
-                    </div>
+                    <FormField
+                      label="Quantity per order"
+                      type="number"
+                      min="1"
+                      value={li.qty}
+                      onChange={(e) =>
+                        updateLine(li.key, { qty: e.target.value })
+                      }
+                    />
                     <button
                       type="button"
                       onClick={() => removeLine(li.key)}
@@ -135,17 +158,15 @@ function CreateOrderPage() {
               ))}
             </div>
 
-            <div className="mt-4">
-              <label className="woo-label">How many orders</label>
-              <input
-                className="woo-input"
-                type="number"
-                min="1"
-                max="100"
-                value={count}
-                onChange={(e) => setCount(e.target.value)}
-              />
-            </div>
+            <FormField
+              className="mt-4"
+              label="How many orders"
+              type="number"
+              min="1"
+              max="100"
+              value={count}
+              onChange={(e) => setCount(e.target.value)}
+            />
 
             <p className="text-xs text-gray-500 dark:text-slate-400 mt-3">
               Status <span className="font-mono">{defaults.status}</span>,
@@ -159,9 +180,9 @@ function CreateOrderPage() {
               </Link>
               .
             </p>
-          </div>
+          </Card>
 
-          <div className="woo-card">
+          <Card>
             <AddressPicker
               value={address}
               onChange={setAddress}
@@ -172,55 +193,23 @@ function CreateOrderPage() {
               customer for every order. Fill them in and the same address is
               used for the whole batch.
             </p>
-          </div>
+          </Card>
 
-          <button
+          <Button
             type="submit"
-            disabled={op.loading || validLines.length === 0}
-            className="woo-btn-primary w-full"
+            fullWidth
+            icon={ShoppingBag}
+            loading={op.loading}
+            disabled={validLines.length === 0}
           >
-            {op.loading ? <Spinner /> : <ShoppingBag size={16} />}
             {op.loading
               ? "Creating..."
               : validLines.length === 0
                 ? "Add a product to enable"
                 : "Create orders"}
-          </button>
+          </Button>
         </form>
-
-        <div className="space-y-4">
-          {op.error && <ErrorBanner error={op.error} onDismiss={op.reset} />}
-
-          {op.result && (
-            <>
-              <div className="woo-card">
-                <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-3">
-                  Created {op.result.count}
-                </h3>
-                <ul className="space-y-2">
-                  {op.result.data.map((o) => (
-                    <li
-                      key={o.id}
-                      className="flex items-center justify-between text-sm px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-900"
-                    >
-                      <span className="text-gray-800 dark:text-slate-100">
-                        #{o.id} —{" "}
-                        {[o.billing?.first_name, o.billing?.last_name]
-                          .filter(Boolean)
-                          .join(" ")}
-                      </span>
-                      <span className="text-xs text-gray-400 shrink-0 ml-3">
-                        {o.currency} {o.total}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <JsonView data={op.result.data} />
-            </>
-          )}
-        </div>
-      </div>
+      </SplitLayout>
     </MainLayout>
   );
 }

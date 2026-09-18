@@ -4,11 +4,14 @@ import MainLayout from "../../components/layout/MainLayout";
 import StoreBadge from "../../components/common/StoreBadge";
 import ErrorBanner from "../../components/common/ErrorBanner";
 import JsonView from "../../components/common/JsonView";
-import { Spinner } from "../../components/common/Spinner";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import FormField from "../../components/ui/FormField";
+import SplitLayout from "../../components/ui/SplitLayout";
 import { retrieveProduct, listVariations } from "../../api/productApi";
 import { useOperation } from "../../utils/useOperation";
 
-function Field({ label, value }) {
+function Row({ label, value }) {
   return (
     <div className="flex items-start justify-between gap-4 py-2 border-b border-gray-50 dark:border-slate-700/60 last:border-0">
       <span className="text-xs text-gray-500 dark:text-slate-400 shrink-0">
@@ -49,116 +52,105 @@ function FetchProductPage() {
     >
       <StoreBadge />
 
-      <div
-        className={`grid grid-cols-1 gap-5 ${
-          fetchOp.error || variationsOp.error || product
-            ? "xl:grid-cols-2"
-            : "max-w-2xl"
-        }`}
-      >
-        <div className="woo-card">
-          <form onSubmit={submit} className="space-y-4">
-            <div>
-              <label className="woo-label">Product ID</label>
-              <input
-                className="woo-input"
-                type="number"
-                value={productId}
-                onChange={(e) => setProductId(e.target.value)}
-                placeholder="119"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={fetchOp.loading}
-              className="woo-btn-primary w-full"
-            >
-              {fetchOp.loading ? <Spinner /> : <Search size={16} />}
-              Fetch product
-            </button>
-          </form>
-        </div>
-
-        <div className="space-y-4">
-          {fetchOp.error && (
-            <ErrorBanner error={fetchOp.error} onDismiss={fetchOp.reset} />
-          )}
-          {variationsOp.error && (
-            <ErrorBanner
-              error={variationsOp.error}
-              onDismiss={variationsOp.reset}
-            />
-          )}
-
-          {product && (
+      <SplitLayout
+        sidebar={
+          (fetchOp.error || variationsOp.error || product) && (
             <>
-              <div className="woo-card">
-                <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-3">
-                  {product.name}
-                </h3>
-                <Field label="ID" value={product.id} />
-                <Field label="Type" value={product.type} />
-                <Field label="Status" value={product.status} />
-                <Field label="SKU" value={product.sku} />
-                <Field label="Price" value={product.price} />
-                <Field label="Regular price" value={product.regular_price} />
-                <Field label="Stock" value={product.stock_quantity} />
-                <Field label="Weight" value={product.weight} />
-                <Field
-                  label="Dimensions"
-                  value={
-                    product.dimensions
-                      ? `${product.dimensions.length} × ${product.dimensions.width} × ${product.dimensions.height}`
-                      : "—"
-                  }
+              {fetchOp.error && (
+                <ErrorBanner error={fetchOp.error} onDismiss={fetchOp.reset} />
+              )}
+              {variationsOp.error && (
+                <ErrorBanner
+                  error={variationsOp.error}
+                  onDismiss={variationsOp.reset}
                 />
-                <Field label="Permalink" value={product.permalink} />
-
-                {product.type === "variable" && (
-                  <button
-                    onClick={() => variationsOp.run(product.id)}
-                    disabled={variationsOp.loading}
-                    className="woo-btn-ghost mt-4"
-                  >
-                    {variationsOp.loading ? (
-                      <Spinner />
-                    ) : (
-                      <Layers size={15} />
-                    )}
-                    Load variations
-                  </button>
-                )}
-              </div>
-
-              {variationsOp.result && (
-                <div className="woo-card">
-                  <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-3">
-                    {variationsOp.result.count} variations
-                  </h3>
-                  <ul className="space-y-1.5">
-                    {variationsOp.result.data.map((v) => (
-                      <li
-                        key={v.id}
-                        className="text-sm text-gray-600 dark:text-slate-300"
-                      >
-                        #{v.id} — {v.price}{" "}
-                        <span className="text-xs text-gray-400">
-                          {(v.attributes ?? [])
-                            .map((a) => `${a.name}: ${a.option}`)
-                            .join(", ")}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
               )}
 
-              <JsonView data={product} defaultOpen />
+              {product && (
+                <>
+                  <Card title={product.name}>
+                    <Row label="ID" value={product.id} />
+                    <Row label="Type" value={product.type} />
+                    <Row label="Status" value={product.status} />
+                    <Row label="SKU" value={product.sku} />
+                    <Row label="Price" value={product.price} />
+                    <Row
+                      label="Regular price"
+                      value={product.regular_price}
+                    />
+                    <Row label="Stock" value={product.stock_quantity} />
+                    <Row label="Weight" value={product.weight} />
+                    <Row
+                      label="Dimensions"
+                      value={
+                        product.dimensions
+                          ? `${product.dimensions.length} × ${product.dimensions.width} × ${product.dimensions.height}`
+                          : "—"
+                      }
+                    />
+                    <Row label="Permalink" value={product.permalink} />
+
+                    {product.type === "variable" && (
+                      <Button
+                        variant="ghost"
+                        className="mt-4"
+                        icon={Layers}
+                        loading={variationsOp.loading}
+                        onClick={() => variationsOp.run(product.id)}
+                      >
+                        Load variations
+                      </Button>
+                    )}
+                  </Card>
+
+                  {variationsOp.result && (
+                    <Card title={`${variationsOp.result.count} variations`}>
+                      <ul className="space-y-1.5">
+                        {variationsOp.result.data.map((v) => (
+                          <li
+                            key={v.id}
+                            className="text-sm text-gray-600 dark:text-slate-300"
+                          >
+                            #{v.id} — {v.price}{" "}
+                            <span className="text-xs text-gray-400">
+                              {(v.attributes ?? [])
+                                .map((a) => `${a.name}: ${a.option}`)
+                                .join(", ")}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </Card>
+                  )}
+
+                  <JsonView data={product} defaultOpen />
+                </>
+              )}
             </>
-          )}
-        </div>
-      </div>
+          )
+        }
+      >
+        <Card>
+          <form onSubmit={submit} className="space-y-4">
+            <FormField
+              label="Product ID"
+              type="number"
+              value={productId}
+              onChange={(e) => setProductId(e.target.value)}
+              placeholder="119"
+              required
+            />
+            <Button
+              type="submit"
+              fullWidth
+              icon={Search}
+              loading={fetchOp.loading}
+            >
+              Fetch product
+            </Button>
+          </form>
+        </Card>
+      </SplitLayout>
     </MainLayout>
   );
 }

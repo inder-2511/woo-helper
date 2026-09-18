@@ -5,11 +5,16 @@ import StoreBadge from "../components/common/StoreBadge";
 import ErrorBanner from "../components/common/ErrorBanner";
 import { LoadingBlock, Spinner } from "../components/common/Spinner";
 import JsonView from "../components/common/JsonView";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import FormField from "../components/ui/FormField";
+import EmptyState from "../components/ui/EmptyState";
 import { listCoupons, createCoupons, deleteCoupon } from "../api/couponApi";
 import { classifyError } from "../utils/errorClassifier";
 import { useOperation } from "../utils/useOperation";
 import { useToast } from "../context/ToastContext";
 import { useActivity } from "../context/ActivityContext";
+import { useConfirm } from "../context/ConfirmContext";
 
 const DISCOUNT_TYPES = [
   { value: "percent", label: "Percentage discount" },
@@ -20,6 +25,7 @@ const DISCOUNT_TYPES = [
 function CouponsPage() {
   const { showToast } = useToast();
   const { addActivity } = useActivity();
+  const confirm = useConfirm();
 
   const [form, setForm] = useState({
     discountType: "percent",
@@ -68,7 +74,7 @@ function CouponsPage() {
   };
 
   const handleDelete = async (coupon) => {
-    if (!window.confirm(`Permanently delete coupon "${coupon.code}"?`)) return;
+    if (!(await confirm(`Permanently delete coupon "${coupon.code}"?`))) return;
     setDeletingId(coupon.id);
     try {
       await deleteCoupon(coupon.id);
@@ -95,60 +101,44 @@ function CouponsPage() {
     >
       <StoreBadge />
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-5">
-        <div className="woo-card">
-          <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-1">
-            Generate coupons
-          </h3>
-          <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
-            Codes are randomised so bulk runs never collide.
-          </p>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-5 items-start">
+        <Card
+          title="Generate coupons"
+          description="Codes are randomised so bulk runs never collide."
+        >
           <form onSubmit={handleCreate} className="space-y-3">
-            <div>
-              <label className="woo-label">Discount type</label>
-              <select
-                className="woo-input"
-                value={form.discountType}
-                onChange={set("discountType")}
-              >
-                {DISCOUNT_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FormField
+              label="Discount type"
+              type="select"
+              value={form.discountType}
+              onChange={set("discountType")}
+              options={DISCOUNT_TYPES}
+            />
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="woo-label">Amount</label>
-                <input
-                  className="woo-input"
-                  value={form.amount}
-                  onChange={set("amount")}
-                />
-              </div>
-              <div>
-                <label className="woo-label">How many</label>
-                <input
-                  className="woo-input"
-                  type="number"
-                  min="1"
-                  max="50"
-                  value={form.count}
-                  onChange={set("count")}
-                />
-              </div>
+              <FormField
+                label="Amount"
+                value={form.amount}
+                onChange={set("amount")}
+              />
+              <FormField
+                label="How many"
+                type="number"
+                min="1"
+                max="50"
+                value={form.count}
+                onChange={set("count")}
+              />
             </div>
-            <button
+            <Button
               type="submit"
-              disabled={createOp.loading}
-              className="woo-btn-primary w-full"
+              fullWidth
+              icon={Ticket}
+              loading={createOp.loading}
             >
-              {createOp.loading ? <Spinner /> : <Ticket size={16} />}
               Create coupons
-            </button>
+            </Button>
           </form>
-        </div>
+        </Card>
 
         <div className="xl:col-span-2 space-y-4">
           {createOp.error && (
@@ -167,19 +157,21 @@ function CouponsPage() {
       </div>
 
       <div className="flex justify-end mb-3">
-        <button onClick={load} className="woo-btn-ghost">
-          {loading ? <Spinner /> : <RefreshCw size={15} />}
+        <Button
+          variant="ghost"
+          icon={RefreshCw}
+          loading={loading}
+          onClick={load}
+        >
           Refresh
-        </button>
+        </Button>
       </div>
 
-      <div className="woo-card p-0 overflow-hidden">
+      <Card className="!p-0 overflow-hidden">
         {loading && !data ? (
           <LoadingBlock label="Loading coupons..." />
         ) : !data || data.coupons.length === 0 ? (
-          <div className="py-12 text-center text-sm text-gray-400 dark:text-slate-500">
-            No coupons yet.
-          </div>
+          <EmptyState title="No coupons yet." />
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-slate-400">
@@ -231,27 +223,27 @@ function CouponsPage() {
             </tbody>
           </table>
         )}
-      </div>
+      </Card>
 
       {data && data.totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          <Button
+            variant="ghost"
             disabled={page <= 1 || loading}
-            className="woo-btn-ghost"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
             Previous
-          </button>
+          </Button>
           <span className="text-xs text-gray-500 dark:text-slate-400">
             Page {data.page} of {data.totalPages}
           </span>
-          <button
-            onClick={() => setPage((p) => p + 1)}
+          <Button
+            variant="ghost"
             disabled={page >= data.totalPages || loading}
-            className="woo-btn-ghost"
+            onClick={() => setPage((p) => p + 1)}
           >
             Next
-          </button>
+          </Button>
         </div>
       )}
     </MainLayout>

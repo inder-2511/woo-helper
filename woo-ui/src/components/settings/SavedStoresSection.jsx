@@ -2,10 +2,13 @@ import { useState } from "react";
 import { Store, Trash2, Check, Plug, Plus } from "lucide-react";
 import { useSavedStores } from "../../context/SavedStoresContext";
 import { useToast } from "../../context/ToastContext";
+import { useConfirm } from "../../context/ConfirmContext";
 import { testConnection } from "../../api/storeApi";
 import { classifyError } from "../../utils/errorClassifier";
-import { Spinner } from "../common/Spinner";
 import ErrorBanner from "../common/ErrorBanner";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
+import FormField from "../ui/FormField";
 
 const empty = { name: "", baseUrl: "", key: "", secret: "" };
 
@@ -13,6 +16,7 @@ function SavedStoresSection() {
   const { stores, activeId, setActiveId, addStore, removeStore } =
     useSavedStores();
   const { showToast } = useToast();
+  const confirm = useConfirm();
 
   const [form, setForm] = useState(empty);
   const [testing, setTesting] = useState(false);
@@ -29,6 +33,12 @@ function SavedStoresSection() {
     }
     setForm(empty);
     showToast(`Saved "${record.name}"`, "success");
+  };
+
+  const handleRemove = async (store) => {
+    if (!(await confirm(`Remove "${store.name}"?`))) return;
+    removeStore(store.id);
+    showToast(`Removed "${store.name}"`, "success");
   };
 
   /** Runs against whichever store is currently active. */
@@ -51,19 +61,11 @@ function SavedStoresSection() {
   };
 
   return (
-    <div className="woo-card">
-      <div className="flex items-center gap-2 mb-1">
-        <Store size={18} className="text-purple-500" />
-        <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">
-          Stores
-        </h2>
-      </div>
-      <p className="text-xs text-gray-500 dark:text-slate-400 mb-5">
-        Credentials are kept in this browser only and sent with each request —
-        the backend never stores them. Generate keys in WooCommerce → Settings →
-        Advanced → REST API with Read/Write permission.
-      </p>
-
+    <Card
+      title="Stores"
+      icon={Store}
+      description="Credentials are kept in this browser only and sent with each request — the backend never stores them. Generate keys in WooCommerce → Settings → Advanced → REST API with Read/Write permission."
+    >
       {stores.length > 0 && (
         <div className="space-y-2 mb-5">
           {stores.map((s) => {
@@ -99,7 +101,7 @@ function SavedStoresSection() {
                 </div>
 
                 <button
-                  onClick={() => removeStore(s.id)}
+                  onClick={() => handleRemove(s)}
                   title="Remove store"
                   className="text-gray-400 hover:text-red-500 shrink-0"
                 >
@@ -109,14 +111,15 @@ function SavedStoresSection() {
             );
           })}
 
-          <button
+          <Button
+            variant="ghost"
+            className="mt-2"
+            icon={Plug}
+            loading={testing}
             onClick={handleTest}
-            disabled={testing}
-            className="woo-btn-ghost mt-2"
           >
-            {testing ? <Spinner /> : <Plug size={15} />}
             Test active store
-          </button>
+          </Button>
         </div>
       )}
 
@@ -128,51 +131,38 @@ function SavedStoresSection() {
 
       <form onSubmit={handleAdd} className="space-y-3">
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="woo-label">Label</label>
-            <input
-              className="woo-input"
-              value={form.name}
-              onChange={set("name")}
-              placeholder="QA store"
-            />
-          </div>
-          <div>
-            <label className="woo-label">Store URL</label>
-            <input
-              className="woo-input"
-              value={form.baseUrl}
-              onChange={set("baseUrl")}
-              placeholder="https://mystore.com"
-            />
-          </div>
-          <div>
-            <label className="woo-label">Consumer key</label>
-            <input
-              className="woo-input"
-              value={form.key}
-              onChange={set("key")}
-              placeholder="ck_..."
-            />
-          </div>
-          <div>
-            <label className="woo-label">Consumer secret</label>
-            <input
-              className="woo-input"
-              type="password"
-              value={form.secret}
-              onChange={set("secret")}
-              placeholder="cs_..."
-            />
-          </div>
+          <FormField
+            label="Label"
+            value={form.name}
+            onChange={set("name")}
+            placeholder="QA store"
+          />
+          <FormField
+            label="Store URL"
+            value={form.baseUrl}
+            onChange={set("baseUrl")}
+            placeholder="https://mystore.com"
+          />
+          <FormField
+            label="Consumer key"
+            value={form.key}
+            onChange={set("key")}
+            placeholder="ck_..."
+          />
+          <FormField
+            label="Consumer secret"
+            type="password"
+            value={form.secret}
+            onChange={set("secret")}
+            placeholder="cs_..."
+          />
         </div>
 
-        <button type="submit" className="woo-btn-primary">
-          <Plus size={15} />
+        <Button type="submit" icon={Plus}>
           Save store
-        </button>
+        </Button>
       </form>
-    </div>
+    </Card>
   );
 }
 

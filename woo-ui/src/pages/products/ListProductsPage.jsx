@@ -5,17 +5,24 @@ import StoreBadge from "../../components/common/StoreBadge";
 import ErrorBanner from "../../components/common/ErrorBanner";
 import { LoadingBlock, Spinner } from "../../components/common/Spinner";
 import JsonView from "../../components/common/JsonView";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import FormField from "../../components/ui/FormField";
+import Badge, { STATUS_TONE } from "../../components/ui/Badge";
+import EmptyState from "../../components/ui/EmptyState";
 import { listProducts, deleteProduct } from "../../api/productApi";
 import { classifyError } from "../../utils/errorClassifier";
 import { useToast } from "../../context/ToastContext";
 import { useActivity } from "../../context/ActivityContext";
+import { useConfirm } from "../../context/ConfirmContext";
 
-const statusOptions = ["", "publish", "draft", "pending", "private"];
-const typeOptions = ["", "simple", "variable", "grouped", "external"];
+const statusOptions = ["any", "publish", "draft", "pending", "private"];
+const typeOptions = ["any", "simple", "variable", "grouped", "external"];
 
 function ListProductsPage() {
   const { showToast } = useToast();
   const { addActivity } = useActivity();
+  const confirm = useConfirm();
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -60,9 +67,9 @@ function ListProductsPage() {
 
   const handleDelete = async (product) => {
     if (
-      !window.confirm(
+      !(await confirm(
         `Permanently delete "${product.name}" (#${product.id})? This cannot be undone.`,
-      )
+      ))
     ) {
       return;
     }
@@ -100,65 +107,64 @@ function ListProductsPage() {
     >
       <StoreBadge />
 
-      <div className="woo-card mb-5">
-        <form onSubmit={submitSearch} className="flex flex-wrap gap-3 items-end">
-          <div className="flex-1 min-w-[220px]">
-            <label className="woo-label">Search</label>
-            <input
-              className="woo-input"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Name or SKU"
-            />
-          </div>
+      <Card className="mb-5">
+        <form
+          onSubmit={submitSearch}
+          className="flex flex-wrap gap-3 items-end"
+        >
+          <FormField
+            className="flex-1 min-w-[220px]"
+            label="Search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Name or SKU"
+          />
 
-          <div className="w-40">
-            <label className="woo-label">Status</label>
-            <select
-              className="woo-input"
-              value={status}
-              onChange={(e) => {
-                setPage(1);
-                setStatus(e.target.value);
-              }}
-            >
-              {statusOptions.map((s) => (
-                <option key={s} value={s}>
-                  {s || "any"}
-                </option>
-              ))}
-            </select>
-          </div>
+          <FormField
+            className="w-40"
+            label="Status"
+            type="select"
+            value={status}
+            onChange={(e) => {
+              setPage(1);
+              setStatus(e.target.value);
+            }}
+            options={statusOptions.map((s) => ({
+              value: s === "any" ? "" : s,
+              label: s,
+            }))}
+          />
 
-          <div className="w-40">
-            <label className="woo-label">Type</label>
-            <select
-              className="woo-input"
-              value={type}
-              onChange={(e) => {
-                setPage(1);
-                setType(e.target.value);
-              }}
-            >
-              {typeOptions.map((t) => (
-                <option key={t} value={t}>
-                  {t || "any"}
-                </option>
-              ))}
-            </select>
-          </div>
+          <FormField
+            className="w-40"
+            label="Type"
+            type="select"
+            value={type}
+            onChange={(e) => {
+              setPage(1);
+              setType(e.target.value);
+            }}
+            options={typeOptions.map((t) => ({
+              value: t === "any" ? "" : t,
+              label: t,
+            }))}
+          />
 
-          <button type="submit" className="woo-btn-primary">
-            <Search size={15} />
+          <Button type="submit" icon={Search}>
             Search
-          </button>
+          </Button>
 
-          <button type="button" onClick={load} className="woo-btn-ghost">
-            {loading ? <Spinner /> : <RefreshCw size={15} />}
+          <Button
+            type="button"
+            variant="ghost"
+            icon={RefreshCw}
+            loading={loading}
+            onClick={load}
+          >
             Refresh
-          </button>
+          </Button>
         </form>
-      </div>
+      </Card>
 
       {error && (
         <div className="mb-5">
@@ -166,13 +172,11 @@ function ListProductsPage() {
         </div>
       )}
 
-      <div className="woo-card p-0 overflow-hidden">
+      <Card className="!p-0 overflow-hidden">
         {loading && !data ? (
           <LoadingBlock label="Loading products..." />
         ) : !data || data.products.length === 0 ? (
-          <div className="py-12 text-center text-sm text-gray-400 dark:text-slate-500">
-            No products matched.
-          </div>
+          <EmptyState title="No products matched." />
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-slate-400">
@@ -208,9 +212,9 @@ function ListProductsPage() {
                     {p.stock_quantity ?? "—"}
                   </td>
                   <td className="px-5 py-3">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300">
+                    <Badge tone={STATUS_TONE[p.status] ?? "gray"}>
                       {p.status}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-5 py-3 text-right">
                     <button
@@ -231,31 +235,31 @@ function ListProductsPage() {
             </tbody>
           </table>
         )}
-      </div>
+      </Card>
 
       {data && data.products.length > 0 && (
         <div className="flex items-center justify-between mt-4">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          <Button
+            variant="ghost"
+            icon={ChevronLeft}
             disabled={page <= 1 || loading}
-            className="woo-btn-ghost"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
-            <ChevronLeft size={15} />
             Previous
-          </button>
+          </Button>
 
           <span className="text-xs text-gray-500 dark:text-slate-400">
             Page {data.page} of {totalPages}
           </span>
 
-          <button
-            onClick={() => setPage((p) => p + 1)}
+          <Button
+            variant="ghost"
             disabled={page >= totalPages || loading}
-            className="woo-btn-ghost"
+            onClick={() => setPage((p) => p + 1)}
           >
             Next
             <ChevronRight size={15} />
-          </button>
+          </Button>
         </div>
       )}
 

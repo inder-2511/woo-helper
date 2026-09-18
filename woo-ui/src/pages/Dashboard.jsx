@@ -8,6 +8,8 @@ import {
   Trash2,
   Search,
   PlusCircle,
+  Sliders,
+  Pencil,
 } from "lucide-react";
 import MainLayout from "../components/layout/MainLayout";
 import StoreBadge from "../components/common/StoreBadge";
@@ -36,15 +38,22 @@ const quickActions = [
     accent: "hover:border-blue-400",
   },
   {
-    title: "Duplicate Order",
-    description: "Clone an existing order any number of times.",
-    to: "/orders/duplicate",
-    icon: <Copy size={18} />,
+    title: "Custom Order",
+    description: "One order, exact line items, addresses and settings.",
+    to: "/orders/custom",
+    icon: <Sliders size={18} />,
     accent: "hover:border-cyan-400",
   },
   {
+    title: "Update Product",
+    description: "Tick the fields to change price, stock, status and more.",
+    to: "/products/update",
+    icon: <Pencil size={18} />,
+    accent: "hover:border-teal-400",
+  },
+  {
     title: "Delete Product",
-    description: "Remove a product by ID, permanently or to trash.",
+    description: "Remove a product by ID, permanently or in batch.",
     to: "/products/delete",
     icon: <Trash2 size={18} />,
     accent: "hover:border-red-400",
@@ -55,6 +64,13 @@ const quickActions = [
     to: "/customers",
     icon: <Users size={18} />,
     accent: "hover:border-amber-400",
+  },
+  {
+    title: "Generate Coupons",
+    description: "Randomised discount codes for QA checkout flows.",
+    to: "/coupons",
+    icon: <Ticket size={18} />,
+    accent: "hover:border-pink-400",
   },
 ];
 

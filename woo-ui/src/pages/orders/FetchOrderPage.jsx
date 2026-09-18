@@ -4,11 +4,14 @@ import MainLayout from "../../components/layout/MainLayout";
 import StoreBadge from "../../components/common/StoreBadge";
 import ErrorBanner from "../../components/common/ErrorBanner";
 import JsonView from "../../components/common/JsonView";
-import { Spinner } from "../../components/common/Spinner";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import FormField from "../../components/ui/FormField";
+import SplitLayout from "../../components/ui/SplitLayout";
 import { retrieveOrder, listOrderNotes } from "../../api/orderApi";
 import { useOperation } from "../../utils/useOperation";
 
-function Field({ label, value }) {
+function Row({ label, value }) {
   return (
     <div className="flex items-start justify-between gap-4 py-2 border-b border-gray-50 dark:border-slate-700/60 last:border-0">
       <span className="text-xs text-gray-500 dark:text-slate-400 shrink-0">
@@ -49,131 +52,118 @@ function FetchOrderPage() {
     >
       <StoreBadge />
 
-      <div
-        className={`grid grid-cols-1 gap-5 ${
-          fetchOp.error || notesOp.error || order ? "xl:grid-cols-2" : "max-w-2xl"
-        }`}
-      >
-        <div className="woo-card">
-          <form onSubmit={submit} className="space-y-4">
-            <div>
-              <label className="woo-label">Order ID</label>
-              <input
-                className="woo-input"
-                type="number"
-                value={orderId}
-                onChange={(e) => setOrderId(e.target.value)}
-                placeholder="123"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={fetchOp.loading}
-              className="woo-btn-primary w-full"
-            >
-              {fetchOp.loading ? <Spinner /> : <Search size={16} />}
-              Fetch order
-            </button>
-          </form>
-        </div>
-
-        <div className="space-y-4">
-          {fetchOp.error && (
-            <ErrorBanner error={fetchOp.error} onDismiss={fetchOp.reset} />
-          )}
-          {notesOp.error && (
-            <ErrorBanner error={notesOp.error} onDismiss={notesOp.reset} />
-          )}
-
-          {order && (
+      <SplitLayout
+        sidebar={
+          (fetchOp.error || notesOp.error || order) && (
             <>
-              <div className="woo-card">
-                <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-3">
-                  Order #{order.id}
-                </h3>
-                <Field label="Status" value={order.status} />
-                <Field
-                  label="Total"
-                  value={`${order.currency} ${order.total}`}
-                />
-                <Field
-                  label="Customer"
-                  value={[order.billing?.first_name, order.billing?.last_name]
-                    .filter(Boolean)
-                    .join(" ")}
-                />
-                <Field label="Email" value={order.billing?.email} />
-                <Field label="Payment" value={order.payment_method_title} />
-                <Field label="Created" value={order.date_created} />
-                <Field label="Customer note" value={order.customer_note} />
-
-                <button
-                  onClick={() => notesOp.run(order.id)}
-                  disabled={notesOp.loading}
-                  className="woo-btn-ghost mt-4"
-                >
-                  {notesOp.loading ? <Spinner /> : <StickyNote size={15} />}
-                  Load notes
-                </button>
-              </div>
-
-              {order.line_items?.length > 0 && (
-                <div className="woo-card">
-                  <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-3">
-                    {order.line_items.length} line items
-                  </h3>
-                  <ul className="space-y-2">
-                    {order.line_items.map((li) => (
-                      <li
-                        key={li.id}
-                        className="flex items-center justify-between text-sm px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-900"
-                      >
-                        <span className="text-gray-800 dark:text-slate-100 truncate">
-                          {li.name}
-                        </span>
-                        <span className="text-xs text-gray-400 shrink-0 ml-3">
-                          ×{li.quantity} · {li.total}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              {fetchOp.error && (
+                <ErrorBanner error={fetchOp.error} onDismiss={fetchOp.reset} />
+              )}
+              {notesOp.error && (
+                <ErrorBanner error={notesOp.error} onDismiss={notesOp.reset} />
               )}
 
-              {notesOp.result && (
-                <div className="woo-card">
-                  <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-3">
-                    {notesOp.result.count} notes
-                  </h3>
-                  {notesOp.result.count === 0 ? (
-                    <p className="text-sm text-gray-400">No notes yet.</p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {notesOp.result.data.map((n) => (
-                        <li
-                          key={n.id}
-                          className="text-sm px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-900"
-                        >
-                          <p className="text-gray-700 dark:text-slate-300">
-                            {n.note}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {n.date_created}
-                            {n.customer_note ? " · customer-visible" : ""}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
+              {order && (
+                <>
+                  <Card>
+                    <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-3">
+                      Order #{order.id}
+                    </h3>
+                    <Row label="Status" value={order.status} />
+                    <Row
+                      label="Total"
+                      value={`${order.currency} ${order.total}`}
+                    />
+                    <Row
+                      label="Customer"
+                      value={[order.billing?.first_name, order.billing?.last_name]
+                        .filter(Boolean)
+                        .join(" ")}
+                    />
+                    <Row label="Email" value={order.billing?.email} />
+                    <Row label="Payment" value={order.payment_method_title} />
+                    <Row label="Created" value={order.date_created} />
+                    <Row label="Customer note" value={order.customer_note} />
+
+                    <Button
+                      variant="ghost"
+                      className="mt-4"
+                      icon={StickyNote}
+                      loading={notesOp.loading}
+                      onClick={() => notesOp.run(order.id)}
+                    >
+                      Load notes
+                    </Button>
+                  </Card>
+
+                  {order.line_items?.length > 0 && (
+                    <Card title={`${order.line_items.length} line items`}>
+                      <ul className="space-y-2">
+                        {order.line_items.map((li) => (
+                          <li
+                            key={li.id}
+                            className="flex items-center justify-between text-sm px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-900"
+                          >
+                            <span className="text-gray-800 dark:text-slate-100 truncate">
+                              {li.name}
+                            </span>
+                            <span className="text-xs text-gray-400 shrink-0 ml-3">
+                              ×{li.quantity} · {li.total}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </Card>
                   )}
-                </div>
-              )}
 
-              <JsonView data={order} defaultOpen />
+                  {notesOp.result && (
+                    <Card title={`${notesOp.result.count} notes`}>
+                      {notesOp.result.count === 0 ? (
+                        <p className="text-sm text-gray-400">No notes yet.</p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {notesOp.result.data.map((n) => (
+                            <li
+                              key={n.id}
+                              className="text-sm px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-900"
+                            >
+                              <p className="text-gray-700 dark:text-slate-300">
+                                {n.note}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                {n.date_created}
+                                {n.customer_note ? " · customer-visible" : ""}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </Card>
+                  )}
+
+                  <JsonView data={order} defaultOpen />
+                </>
+              )}
             </>
-          )}
-        </div>
-      </div>
+          )
+        }
+      >
+        <Card>
+          <form onSubmit={submit} className="space-y-4">
+            <FormField
+              label="Order ID"
+              type="number"
+              value={orderId}
+              onChange={(e) => setOrderId(e.target.value)}
+              placeholder="123"
+              required
+            />
+            <Button type="submit" fullWidth icon={Search} loading={fetchOp.loading}>
+              Fetch order
+            </Button>
+          </form>
+        </Card>
+      </SplitLayout>
     </MainLayout>
   );
 }
