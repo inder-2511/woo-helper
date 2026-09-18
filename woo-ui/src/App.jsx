@@ -7,6 +7,7 @@ import CouponsPage from "./pages/CouponsPage";
 
 import ListOrdersPage from "./pages/orders/ListOrdersPage";
 import CreateOrderPage from "./pages/orders/CreateOrderPage";
+import CustomOrderPage from "./pages/orders/CustomOrderPage";
 import UpdateOrderPage from "./pages/orders/UpdateOrderPage";
 import DuplicateOrderPage from "./pages/orders/DuplicateOrderPage";
 import FetchOrderPage from "./pages/orders/FetchOrderPage";
@@ -22,6 +23,8 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { ToastProvider } from "./context/ToastContext";
 import { ActivityProvider } from "./context/ActivityContext";
 import { SavedStoresProvider } from "./context/SavedStoresContext";
+import { SavedAddressesProvider } from "./context/SavedAddressesContext";
+import { OrderDefaultsProvider } from "./context/OrderDefaultsContext";
 
 function App() {
   return (
@@ -29,45 +32,68 @@ function App() {
       <ToastProvider>
         <ActivityProvider>
           <SavedStoresProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
+            <SavedAddressesProvider>
+              <OrderDefaultsProvider>
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
 
-                <Route path="/orders" element={<ListOrdersPage />} />
-                <Route path="/orders/create" element={<CreateOrderPage />} />
-                <Route path="/orders/update" element={<UpdateOrderPage />} />
-                <Route
-                  path="/orders/duplicate"
-                  element={<DuplicateOrderPage />}
-                />
-                <Route path="/orders/fetch" element={<FetchOrderPage />} />
+                    <Route path="/orders" element={<ListOrdersPage />} />
+                    <Route
+                      path="/orders/create"
+                      element={<CreateOrderPage />}
+                    />
+                    <Route
+                      path="/orders/custom"
+                      element={<CustomOrderPage />}
+                    />
+                    <Route
+                      path="/orders/update"
+                      element={<UpdateOrderPage />}
+                    />
+                    <Route
+                      path="/orders/duplicate"
+                      element={<DuplicateOrderPage />}
+                    />
+                    <Route
+                      path="/orders/fetch"
+                      element={<FetchOrderPage />}
+                    />
 
-                <Route path="/products" element={<ListProductsPage />} />
-                <Route
-                  path="/products/create-simple"
-                  element={<CreateSimpleProductPage />}
-                />
-                <Route
-                  path="/products/create-variable"
-                  element={<CreateVariableProductPage />}
-                />
-                <Route
-                  path="/products/duplicate"
-                  element={<DuplicateProductPage />}
-                />
-                <Route
-                  path="/products/delete"
-                  element={<DeleteProductPage />}
-                />
-                <Route path="/products/fetch" element={<FetchProductPage />} />
+                    <Route
+                      path="/products"
+                      element={<ListProductsPage />}
+                    />
+                    <Route
+                      path="/products/create-simple"
+                      element={<CreateSimpleProductPage />}
+                    />
+                    <Route
+                      path="/products/create-variable"
+                      element={<CreateVariableProductPage />}
+                    />
+                    <Route
+                      path="/products/duplicate"
+                      element={<DuplicateProductPage />}
+                    />
+                    <Route
+                      path="/products/delete"
+                      element={<DeleteProductPage />}
+                    />
+                    <Route
+                      path="/products/fetch"
+                      element={<FetchProductPage />}
+                    />
 
-                <Route path="/customers" element={<CustomersPage />} />
-                <Route path="/coupons" element={<CouponsPage />} />
-                <Route path="/settings" element={<Settings />} />
+                    <Route path="/customers" element={<CustomersPage />} />
+                    <Route path="/coupons" element={<CouponsPage />} />
+                    <Route path="/settings" element={<Settings />} />
 
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </BrowserRouter>
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </BrowserRouter>
+              </OrderDefaultsProvider>
+            </SavedAddressesProvider>
           </SavedStoresProvider>
         </ActivityProvider>
       </ToastProvider>

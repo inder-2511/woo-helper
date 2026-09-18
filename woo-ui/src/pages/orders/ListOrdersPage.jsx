@@ -15,17 +15,7 @@ import { listOrders, deleteOrder } from "../../api/orderApi";
 import { classifyError } from "../../utils/errorClassifier";
 import { useToast } from "../../context/ToastContext";
 import { useActivity } from "../../context/ActivityContext";
-
-export const ORDER_STATUSES = [
-  "pending",
-  "processing",
-  "on-hold",
-  "completed",
-  "cancelled",
-  "refunded",
-  "failed",
-  "trash",
-];
+import { ORDER_STATUSES } from "../../utils/orderConstants";
 
 const statusStyles = {
   completed:

@@ -7,11 +7,7 @@ import JsonView from "../../components/common/JsonView";
 import { Spinner } from "../../components/common/Spinner";
 import { updateOrder, addOrderNote, refundOrder } from "../../api/orderApi";
 import { useOperation } from "../../utils/useOperation";
-import { ORDER_STATUSES } from "./ListOrdersPage";
-
-const CURRENCIES = [
-  "USD", "EUR", "GBP", "AUD", "CAD", "INR", "JPY", "NZD", "SGD", "AED", "ZAR",
-];
+import { ORDER_STATUSES, CURRENCIES } from "../../utils/orderConstants";
 
 /**
  * Only the fields the user ticks are sent, so an update never clobbers

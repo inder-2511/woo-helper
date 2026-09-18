@@ -1,28 +1,67 @@
 const { faker } = require("@faker-js/faker");
 
-const orderData = (inputs) => {
-  const state = faker.location.state({ abbreviated: true });
+/**
+ * A saved-address record has looser required fields than Woo's schema.
+ * Returns a Woo-shaped address only when it has enough to be usable, else
+ * null so the caller falls back to a generated one.
+ */
+function normalizeFixedAddress(addr, { includeContact = false } = {}) {
+  if (!addr || typeof addr !== "object") return null;
+  const required = ["address_1", "city", "country", "postcode"];
+  if (!required.every((k) => addr[k] && String(addr[k]).trim())) return null;
 
   return {
-    status: "processing",
-    shipping: {
-      first_name: faker.person.firstName(),
-      last_name: faker.person.lastName(),
-      address_1: faker.location.streetAddress(),
-      city: faker.location.city(),
-      state: state,
-      postcode: faker.location.zipCode(),
-      country: "US",
-    },
-    billing: {
-      first_name: faker.person.firstName(),
-      last_name: faker.person.lastName(),
-      address_1: faker.location.streetAddress(),
-      city: faker.location.city(),
-      state: state,
-      postcode: faker.location.zipCode(),
-      country: "US",
-    },
+    first_name: addr.first_name || "",
+    last_name: addr.last_name || "",
+    company: addr.company || undefined,
+    address_1: addr.address_1,
+    address_2: addr.address_2 || undefined,
+    city: addr.city,
+    state: addr.state || "",
+    postcode: addr.postcode,
+    country: addr.country,
+    ...(includeContact && addr.email ? { email: addr.email } : {}),
+    ...(includeContact && addr.phone ? { phone: addr.phone } : {}),
+  };
+}
+
+/**
+ * Builds one order payload for the bulk "Create Orders" flow.
+ *
+ * `inputs.address`, if it resolves to a usable address, is reused for every
+ * order in the batch (the loop in orderService calls this fresh each time
+ * with the same inputs) — useful for repeat-customer test scenarios.
+ * Everything else keeps its previous faker-generated / hardcoded defaults
+ * so existing CLI and API callers are unaffected.
+ */
+const orderData = (inputs = {}) => {
+  const status = inputs.status || "processing";
+  const country = inputs.country || "US";
+  const shippingTitle = inputs.shippingTitle || "Flat Rate";
+  const shippingTotal =
+    inputs.shippingTotal !== undefined && inputs.shippingTotal !== ""
+      ? String(inputs.shippingTotal)
+      : "10.00";
+
+  const makeAddress = () => ({
+    first_name: faker.person.firstName(),
+    last_name: faker.person.lastName(),
+    address_1: faker.location.streetAddress(),
+    city: faker.location.city(),
+    state: faker.location.state({ abbreviated: true }),
+    postcode: faker.location.zipCode(),
+    country,
+  });
+
+  const fixedBilling = normalizeFixedAddress(inputs.address, {
+    includeContact: true,
+  });
+  const fixedShipping = normalizeFixedAddress(inputs.address);
+
+  return {
+    status,
+    shipping: fixedShipping || makeAddress(),
+    billing: fixedBilling || makeAddress(),
     line_items: [
       {
         product_id: parseInt(inputs.product),
@@ -32,8 +71,8 @@ const orderData = (inputs) => {
     shipping_lines: [
       {
         method_id: "flat_rate",
-        method_title: "Flat Rate",
-        total: "10.00",
+        method_title: shippingTitle,
+        total: shippingTotal,
       },
     ],
   };
@@ -120,4 +159,4 @@ const orderData = (inputs) => {
 //   coupon_lines,
 // };
 
-module.exports = { orderData };
+module.exports = { orderData, normalizeFixedAddress };

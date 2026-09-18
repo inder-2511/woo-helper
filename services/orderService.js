@@ -1,5 +1,107 @@
-const { orderData } = require("../cli/data/orderData");
+const { orderData, normalizeFixedAddress } = require("../cli/data/orderData");
 const { wooError } = require("./productService");
+
+/**
+ * Builds a single order payload from the Custom Order form: explicit line
+ * items, addresses and settings instead of faker output. Throws a 400 Error
+ * (not a Woo error) when the shape is unusable, so the route can tell "you
+ * gave us garbage" apart from "Woo rejected this".
+ */
+function buildCustomOrderPayload(payload = {}) {
+  const {
+    status = "processing",
+    currency,
+    customerNote,
+    paymentMethod,
+    paymentMethodTitle,
+    billing,
+    shipping,
+    shipToSameAsBilling,
+    lineItems = [],
+    shippingTitle,
+    shippingTotal,
+    couponCode,
+  } = payload;
+
+  const items = (lineItems || [])
+    .filter((li) => li && li.productId)
+    .map((li) => {
+      const item = {
+        product_id: Number(li.productId),
+        quantity: Number(li.quantity) || 1,
+      };
+      if (li.variationId) item.variation_id = Number(li.variationId);
+      // An explicit price overrides Woo's own price lookup for this line.
+      if (li.price !== undefined && li.price !== "" && li.price !== null) {
+        const lineTotal = String(
+          (Number(li.price) || 0) * (Number(li.quantity) || 1),
+        );
+        item.subtotal = lineTotal;
+        item.total = lineTotal;
+      }
+      return item;
+    });
+
+  if (!items.length) {
+    const e = new Error("At least one line item with a product is required");
+    e.status = 400;
+    throw e;
+  }
+
+  const body = { status, line_items: items };
+
+  if (currency) body.currency = currency;
+  if (customerNote) body.customer_note = customerNote;
+  if (paymentMethod) body.payment_method = paymentMethod;
+  if (paymentMethodTitle) body.payment_method_title = paymentMethodTitle;
+
+  const normalizedBilling = normalizeFixedAddress(billing, {
+    includeContact: true,
+  });
+  if (normalizedBilling) body.billing = normalizedBilling;
+
+  if (shipToSameAsBilling) {
+    // Woo's shipping address has no email field — drop it rather than send
+    // a property the schema doesn't define.
+    if (normalizedBilling) {
+      const { email, ...shippingFromBilling } = normalizedBilling;
+      body.shipping = shippingFromBilling;
+    }
+  } else {
+    const normalizedShipping = normalizeFixedAddress(shipping);
+    if (normalizedShipping) body.shipping = normalizedShipping;
+  }
+
+  if (shippingTitle || shippingTotal) {
+    body.shipping_lines = [
+      {
+        method_id: "flat_rate",
+        method_title: shippingTitle || "Flat Rate",
+        total:
+          shippingTotal !== undefined && shippingTotal !== ""
+            ? String(shippingTotal)
+            : "0.00",
+      },
+    ];
+  }
+
+  if (couponCode) body.coupon_lines = [{ code: couponCode }];
+
+  return body;
+}
+
+async function createCustomOrder(api, payload) {
+  const body = buildCustomOrderPayload(payload);
+  try {
+    const response = await api.post("/orders", body);
+    console.log(
+      ` > > > Custom order created ✅ ID: ${response.data.id}, ${response.data.line_items?.length ?? 0} line items`,
+    );
+    return response.data;
+  } catch (err) {
+    throw wooError(err, "Failed to create custom order");
+  }
+}
 
 async function createOrder(api, inputs, numOfOrders) {
   const results = [];
@@ -171,6 +273,7 @@ async function createRefundService(api, orderId, { amount, reason } = {}) {
 
 module.exports = {
   createOrder,
+  createCustomOrder,
   updateOrderService,
   retrieveOrderService,
   listOrdersService,

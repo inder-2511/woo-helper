@@ -17,6 +17,7 @@ const APP_VERSION =
 const orderItems = [
   { name: "All Orders", path: "/orders" },
   { name: "Create Orders", path: "/orders/create" },
+  { name: "Custom Order", path: "/orders/custom" },
   { name: "Update Order", path: "/orders/update" },
   { name: "Duplicate Order", path: "/orders/duplicate" },
   { name: "Fetch Order", path: "/orders/fetch" },

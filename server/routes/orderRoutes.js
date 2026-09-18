@@ -4,6 +4,7 @@ const router = express.Router();
 const { resolveStore } = require("../middleware/resolveStore");
 const {
   createOrder,
+  createCustomOrder,
   updateOrderService,
   retrieveOrderService,
   listOrdersService,
@@ -54,6 +55,15 @@ router.post("/create-order", async (req, res) => {
       Number(req.body.count) || 1,
     );
     res.json({ success: true, count: data.length, data });
+  } catch (err) {
+    fail(res, err);
+  }
+});
+
+router.post("/create-custom-order", async (req, res) => {
+  try {
+    const data = await createCustomOrder(req.woo, req.body);
+    res.json({ success: true, data });
   } catch (err) {
     fail(res, err);
   }

@@ -9,6 +9,9 @@ export const retrieveOrder = (orderId) =>
 export const createOrder = (data) =>
   api.post("/orders/create-order", data).then((r) => r.data);
 
+export const createCustomOrder = (payload) =>
+  api.post("/orders/create-custom-order", payload).then((r) => r.data);
+
 export const duplicateOrder = (data) =>
   api.post("/orders/duplicate-order", data).then((r) => r.data);
 
