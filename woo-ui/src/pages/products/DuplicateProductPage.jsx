@@ -32,7 +32,11 @@ function DuplicateProductPage() {
     >
       <StoreBadge />
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+      <div
+        className={`grid grid-cols-1 gap-5 ${
+          op.error || op.result ? "xl:grid-cols-2" : "max-w-2xl"
+        }`}
+      >
         <div className="woo-card">
           <form onSubmit={submit} className="space-y-4">
             <div>

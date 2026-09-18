@@ -8,10 +8,47 @@ const STORAGE_KEY = "woo_saved_addresses";
 // a billing or shipping payload with no translation step.
 const REQUIRED_FIELDS = ["name", "address_1", "city", "country", "postcode"];
 
+const makeId = () => `addr_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
+
+// Shown the first time the app runs so order forms aren't empty — clearly
+// labeled as test data, editable or removable in Settings like anything
+// else here.
+const DEFAULT_ADDRESSES = [
+  {
+    name: "Test — US customer",
+    first_name: "Jane",
+    last_name: "Doe",
+    address_1: "123 Main St",
+    city: "Needham Heights",
+    state: "MA",
+    postcode: "02494",
+    country: "US",
+    email: "jane.doe@example.com",
+    phone: "+1 555 555 0100",
+  },
+  {
+    name: "Test — UK customer",
+    first_name: "John",
+    last_name: "Smith",
+    address_1: "10 Downing Street",
+    city: "London",
+    state: "",
+    postcode: "SW1A 2AA",
+    country: "GB",
+    email: "john.smith@example.com",
+    phone: "+44 20 7946 0958",
+  },
+];
+
 const load = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    if (raw === null) {
+      // First run — seed defaults. An explicit "[]" (user cleared them)
+      // stays empty and is never re-seeded.
+      return DEFAULT_ADDRESSES.map((a) => ({ id: makeId(), ...a }));
+    }
+    return JSON.parse(raw);
   } catch {
     return [];
   }

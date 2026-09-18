@@ -97,7 +97,19 @@ function UpdateOrderPage() {
     >
       <StoreBadge />
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+      <div
+        className={`grid grid-cols-1 gap-5 ${
+          updateOp.error ||
+          noteOp.error ||
+          refundOp.error ||
+          !nothingSelected ||
+          updateOp.result ||
+          noteOp.result ||
+          refundOp.result
+            ? "xl:grid-cols-2"
+            : "max-w-2xl"
+        }`}
+      >
         <div className="space-y-5">
           <div className="woo-card">
             <form onSubmit={submit} className="space-y-4">

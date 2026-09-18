@@ -49,7 +49,13 @@ function FetchProductPage() {
     >
       <StoreBadge />
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+      <div
+        className={`grid grid-cols-1 gap-5 ${
+          fetchOp.error || variationsOp.error || product
+            ? "xl:grid-cols-2"
+            : "max-w-2xl"
+        }`}
+      >
         <div className="woo-card">
           <form onSubmit={submit} className="space-y-4">
             <div>

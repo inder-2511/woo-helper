@@ -13,29 +13,41 @@ function ProductPicker({ value, onChange, placeholder = "Search products…" }) 
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  // Gates the fetch so idle pickers (e.g. unused rows in a line-item list)
+  // don't all hit the API on mount — only after the field is actually used.
+  const [hasInteracted, setHasInteracted] = useState(false);
   const debounceRef = useRef(null);
   const wrapperRef = useRef(null);
 
   useEffect(() => {
-    if (manual) return undefined;
-    if (!query.trim()) {
-      setResults([]);
-      return undefined;
-    }
+    if (manual || !hasInteracted) return undefined;
     setLoading(true);
     clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(async () => {
-      try {
-        const res = await listProducts({ search: query.trim(), perPage: 8 });
-        setResults(res.products || []);
-      } catch {
-        setResults([]);
-      } finally {
-        setLoading(false);
-      }
-    }, 350);
+    // An empty query still fetches — clicking in shows a starter list
+    // instead of an empty box, so there's always something to pick from.
+    const trimmed = query.trim();
+    debounceRef.current = setTimeout(
+      async () => {
+        try {
+          const res = await listProducts(
+            trimmed ? { search: trimmed, perPage: 8 } : { perPage: 8 },
+          );
+          setResults(res.products || []);
+        } catch {
+          setResults([]);
+        } finally {
+          setLoading(false);
+        }
+      },
+      trimmed ? 350 : 0,
+    );
     return () => clearTimeout(debounceRef.current);
-  }, [query, manual]);
+  }, [query, manual, hasInteracted]);
+
+  const openWithResults = () => {
+    setOpen(true);
+    setHasInteracted(true);
+  };
 
   useEffect(() => {
     const onClickOutside = (e) => {
@@ -91,10 +103,11 @@ function ProductPicker({ value, onChange, placeholder = "Search products…" }) 
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
-              setOpen(true);
+              openWithResults();
               if (value?.productId) onChange({ productId: "", name: "" });
             }}
-            onFocus={() => setOpen(true)}
+            onFocus={openWithResults}
+            onClick={openWithResults}
             placeholder={placeholder}
           />
           {loading ? (
@@ -122,23 +135,39 @@ function ProductPicker({ value, onChange, placeholder = "Search products…" }) 
         </button>
       </div>
 
-      {open && results.length > 0 && (
-        <div className="absolute z-10 mt-1 w-full max-h-64 overflow-auto rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 shadow-lg">
-          {results.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => pick(p)}
-              className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center justify-between gap-2"
-            >
-              <span className="text-sm text-gray-800 dark:text-slate-100 truncate">
-                {p.name}
-              </span>
-              <span className="text-xs text-gray-400 shrink-0">
-                #{p.id} · {p.price || "—"}
-              </span>
-            </button>
-          ))}
+      {open && (
+        <div className="absolute z-20 mt-1 w-full max-h-72 overflow-auto rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 shadow-lg">
+          {!query.trim() && (
+            <p className="px-3.5 py-2 text-xs text-gray-400 dark:text-slate-500 border-b border-gray-100 dark:border-slate-700">
+              Recent products — type to search
+            </p>
+          )}
+
+          {loading && results.length === 0 ? (
+            <p className="px-3.5 py-3 text-sm text-gray-400 dark:text-slate-500">
+              Loading…
+            </p>
+          ) : results.length === 0 ? (
+            <p className="px-3.5 py-3 text-sm text-gray-400 dark:text-slate-500">
+              No products matched.
+            </p>
+          ) : (
+            results.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => pick(p)}
+                className="w-full text-left px-3.5 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center justify-between gap-2"
+              >
+                <span className="text-sm text-gray-800 dark:text-slate-100 truncate">
+                  {p.name}
+                </span>
+                <span className="text-xs text-gray-400 shrink-0">
+                  #{p.id} · {p.price || "—"}
+                </span>
+              </button>
+            ))
+          )}
         </div>
       )}
 

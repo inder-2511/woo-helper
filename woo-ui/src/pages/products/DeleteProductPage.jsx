@@ -61,7 +61,16 @@ function DeleteProductPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+      <div
+        className={`grid grid-cols-1 gap-5 ${
+          singleOp.error ||
+          bulkOp.error ||
+          singleOp.result ||
+          bulkOp.result
+            ? "xl:grid-cols-2"
+            : "max-w-2xl"
+        }`}
+      >
         <div className="space-y-5">
           <div className="woo-card">
             <h3 className="font-bold text-gray-800 dark:text-slate-100 mb-4">

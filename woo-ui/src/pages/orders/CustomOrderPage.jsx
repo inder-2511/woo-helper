@@ -84,7 +84,11 @@ function CustomOrderPage() {
     >
       <StoreBadge />
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+      <div
+        className={`grid grid-cols-1 gap-5 ${
+          op.error || op.result ? "xl:grid-cols-2" : "max-w-2xl"
+        }`}
+      >
         <form onSubmit={submit} className="space-y-5">
           <div className="woo-card">
             <div className="flex items-center justify-between mb-4">
