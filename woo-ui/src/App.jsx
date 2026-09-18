@@ -15,6 +15,7 @@ import FetchOrderPage from "./pages/orders/FetchOrderPage";
 import ListProductsPage from "./pages/products/ListProductsPage";
 import CreateSimpleProductPage from "./pages/products/CreateSimpleProductPage";
 import CreateVariableProductPage from "./pages/products/CreateVariableProductPage";
+import UpdateProductPage from "./pages/products/UpdateProductPage";
 import DuplicateProductPage from "./pages/products/DuplicateProductPage";
 import DeleteProductPage from "./pages/products/DeleteProductPage";
 import FetchProductPage from "./pages/products/FetchProductPage";
@@ -71,6 +72,10 @@ function App() {
                     <Route
                       path="/products/create-variable"
                       element={<CreateVariableProductPage />}
+                    />
+                    <Route
+                      path="/products/update"
+                      element={<UpdateProductPage />}
                     />
                     <Route
                       path="/products/duplicate"

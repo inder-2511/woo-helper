@@ -27,6 +27,7 @@ const productItems = [
   { name: "All Products", path: "/products" },
   { name: "Create Simple", path: "/products/create-simple" },
   { name: "Create Variable", path: "/products/create-variable" },
+  { name: "Update Product", path: "/products/update" },
   { name: "Duplicate Product", path: "/products/duplicate" },
   { name: "Delete Product", path: "/products/delete" },
   { name: "Fetch Product", path: "/products/fetch" },

@@ -61,14 +61,14 @@ const quickActions = [
 const sections = [
   {
     label: "Orders",
-    count: "6 actions",
-    detail: "list, create, update, duplicate, fetch, delete",
+    count: "7 actions",
+    detail: "list, create, custom, update, duplicate, fetch, delete",
     icon: <ShoppingBag size={20} className="text-purple-400" />,
   },
   {
     label: "Products",
-    count: "8 actions",
-    detail: "list, create, duplicate, update, delete, variations",
+    count: "7 actions",
+    detail: "list, create, update, duplicate, delete, fetch, variations",
     icon: <Package size={20} className="text-green-400" />,
   },
   {

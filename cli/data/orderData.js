@@ -58,16 +58,28 @@ const orderData = (inputs = {}) => {
   });
   const fixedShipping = normalizeFixedAddress(inputs.address);
 
+  // `lineItems` (an array) is what the dashboard's multi-product bulk form
+  // sends; the CLI and older callers still pass a single `product`/`qty`.
+  const lineItems =
+    Array.isArray(inputs.lineItems) && inputs.lineItems.length
+      ? inputs.lineItems
+          .filter((li) => li && li.product)
+          .map((li) => ({
+            product_id: parseInt(li.product),
+            quantity: parseInt(li.qty) || 1,
+          }))
+      : [
+          {
+            product_id: parseInt(inputs.product),
+            quantity: parseInt(inputs.qty),
+          },
+        ];
+
   return {
     status,
     shipping: fixedShipping || makeAddress(),
     billing: fixedBilling || makeAddress(),
-    line_items: [
-      {
-        product_id: parseInt(inputs.product),
-        quantity: parseInt(inputs.qty),
-      },
-    ],
+    line_items: lineItems,
     shipping_lines: [
       {
         method_id: "flat_rate",
