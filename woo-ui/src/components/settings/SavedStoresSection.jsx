@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Store, Trash2, Check, Plug, Plus } from "lucide-react";
+import { Store, Trash2, Check, Plug, Plus, Copy } from "lucide-react";
 import { useSavedStores } from "../../context/SavedStoresContext";
 import { useToast } from "../../context/ToastContext";
 import { useConfirm } from "../../context/ConfirmContext";
@@ -21,8 +21,25 @@ function SavedStoresSection() {
   const [form, setForm] = useState(empty);
   const [testing, setTesting] = useState(false);
   const [error, setError] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const handleCopy = async (store) => {
+    const text = [
+      `Store URL: ${store.baseUrl}`,
+      `Consumer Key: ${store.key}`,
+      `Consumer Secret: ${store.secret}`,
+    ].join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(store.id);
+      showToast(`Copied credentials for "${store.name}"`, "success");
+      setTimeout(() => setCopiedId((id) => (id === store.id ? null : id)), 1500);
+    } catch {
+      showToast("Couldn't copy — clipboard access blocked", "error");
+    }
+  };
 
   const handleAdd = (e) => {
     e.preventDefault();
@@ -99,6 +116,18 @@ function SavedStoresSection() {
                     {s.baseUrl} · {s.key.slice(0, 10)}…
                   </p>
                 </div>
+
+                <button
+                  onClick={() => handleCopy(s)}
+                  title="Copy store URL, key and secret"
+                  className="text-gray-400 hover:text-purple-500 shrink-0"
+                >
+                  {copiedId === s.id ? (
+                    <Check size={16} />
+                  ) : (
+                    <Copy size={16} />
+                  )}
+                </button>
 
                 <button
                   onClick={() => handleRemove(s)}

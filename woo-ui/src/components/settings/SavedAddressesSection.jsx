@@ -62,7 +62,7 @@ function SavedAddressesSection() {
     <Card
       title="Saved addresses"
       icon={MapPin}
-      description="Reused from order forms instead of retyping billing/shipping details. Stored in this browser only. Two examples are seeded on first run — edit or remove them as you like."
+      description="Reused from order forms instead of retyping billing/shipping details. Stored in this browser only. US, UK, India and Australia examples are seeded on first run — edit or remove them, or add your own, and they all show up in the same picker on order forms."
     >
       {addresses.length > 0 && (
         <ul className="space-y-2 mb-5">

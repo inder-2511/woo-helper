@@ -12,10 +12,12 @@ const makeId = () => `addr_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
 
 // Shown the first time the app runs so order forms aren't empty — clearly
 // labeled as test data, editable or removable in Settings like anything
-// else here.
+// else here. Same four markets as shopifyHelper's address presets, with
+// Woo's own field names and its ISO 3166-1 alpha-2 country codes (Woo
+// rejects full country names — "United Kingdom" is not valid, "GB" is).
 const DEFAULT_ADDRESSES = [
   {
-    name: "Test — US customer",
+    name: "🇺🇸 Test — US customer",
     first_name: "Jane",
     last_name: "Doe",
     address_1: "123 Main St",
@@ -27,16 +29,40 @@ const DEFAULT_ADDRESSES = [
     phone: "+1 555 555 0100",
   },
   {
-    name: "Test — UK customer",
+    name: "🇬🇧 Test — UK customer",
     first_name: "John",
     last_name: "Smith",
-    address_1: "10 Downing Street",
+    address_1: "42 Victoria Street",
     city: "London",
     state: "",
-    postcode: "SW1A 2AA",
+    postcode: "SW1H 0NW",
     country: "GB",
     email: "john.smith@example.com",
-    phone: "+44 20 7946 0958",
+    phone: "+44 20 7123 4567",
+  },
+  {
+    name: "🇮🇳 Test — India customer",
+    first_name: "Raj",
+    last_name: "Sharma",
+    address_1: "14 Nehru Place",
+    city: "New Delhi",
+    state: "Delhi",
+    postcode: "110019",
+    country: "IN",
+    email: "raj.sharma@example.com",
+    phone: "+91 98112 34567",
+  },
+  {
+    name: "🇦🇺 Test — Australia customer",
+    first_name: "Olivia",
+    last_name: "Smith",
+    address_1: "1 Martin Place",
+    city: "Sydney",
+    state: "NSW",
+    postcode: "2000",
+    country: "AU",
+    email: "olivia.smith@example.com",
+    phone: "+61 2 1234 5678",
   },
 ];
 

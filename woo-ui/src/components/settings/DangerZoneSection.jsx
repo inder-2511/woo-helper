@@ -58,7 +58,7 @@ function DangerZoneSection() {
 
         <div className="pt-3 border-t border-gray-100 dark:border-slate-700">
           <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">
-            Removes every saved address, including the two seeded examples.
+            Removes every saved address, including the seeded examples.
           </p>
           {confirming === "addresses" ? (
             <div className="flex items-center gap-3">
