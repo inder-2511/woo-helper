@@ -64,6 +64,54 @@ const DEFAULT_ADDRESSES = [
     email: "olivia.smith@example.com",
     phone: "+61 2 1234 5678",
   },
+  {
+    name: "🇨🇦 Test — Canada customer",
+    first_name: "Emma",
+    last_name: "Tremblay",
+    address_1: "123 King Street W",
+    city: "Toronto",
+    state: "ON",
+    postcode: "M5X 1A1",
+    country: "CA",
+    email: "emma.tremblay@example.com",
+    phone: "+1 416 555 1234",
+  },
+  {
+    name: "🇩🇪 Test — Germany customer",
+    first_name: "Lukas",
+    last_name: "Schneider",
+    address_1: "Unter den Linden 77",
+    city: "Berlin",
+    state: "BE",
+    postcode: "10117",
+    country: "DE",
+    email: "lukas.schneider@example.com",
+    phone: "+49 30 12345678",
+  },
+  {
+    name: "🇳🇿 Test — New Zealand customer",
+    first_name: "Mia",
+    last_name: "Walker",
+    address_1: "1 Queen Street",
+    city: "Auckland",
+    state: "AUK",
+    postcode: "1010",
+    country: "NZ",
+    email: "mia.walker@example.com",
+    phone: "+64 9 123 4567",
+  },
+  {
+    name: "🇸🇬 Test — Singapore customer",
+    first_name: "Wei",
+    last_name: "Tan",
+    address_1: "10 Bayfront Avenue",
+    city: "Singapore",
+    state: "",
+    postcode: "018956",
+    country: "SG",
+    email: "wei.tan@example.com",
+    phone: "+65 6123 4567",
+  },
 ];
 
 const load = () => {
@@ -124,6 +172,22 @@ export function SavedAddressesProvider({ children }) {
 
   const clearAddresses = () => setAddresses([]);
 
+  /**
+   * Adds whichever default presets aren't already in the list (matched by
+   * label) and returns how many were added. First-run seeding only fires on
+   * a never-initialised browser, so this is how an existing list picks up
+   * presets — without resurrecting ones the user deliberately kept deleted
+   * unless they ask for it.
+   */
+  const restoreDefaults = () => {
+    const have = new Set(addresses.map((a) => a.name));
+    const missing = DEFAULT_ADDRESSES.filter((d) => !have.has(d.name)).map(
+      (d) => ({ id: makeId(), ...d }),
+    );
+    if (missing.length) setAddresses((prev) => [...prev, ...missing]);
+    return missing.length;
+  };
+
   return (
     <SavedAddressesContext.Provider
       value={{
@@ -132,6 +196,7 @@ export function SavedAddressesProvider({ children }) {
         updateAddress,
         removeAddress,
         clearAddresses,
+        restoreDefaults,
       }}
     >
       {children}

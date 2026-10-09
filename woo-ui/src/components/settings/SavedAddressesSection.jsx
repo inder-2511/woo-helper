@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MapPin, Plus, Trash2 } from "lucide-react";
+import { MapPin, Plus, Trash2, RotateCcw } from "lucide-react";
 import { useSavedAddresses } from "../../context/SavedAddressesContext";
 import { useToast } from "../../context/ToastContext";
 import { useConfirm } from "../../context/ConfirmContext";
@@ -28,7 +28,8 @@ const summary = (a) =>
     .join(", ");
 
 function SavedAddressesSection() {
-  const { addresses, addAddress, removeAddress } = useSavedAddresses();
+  const { addresses, addAddress, removeAddress, restoreDefaults } =
+    useSavedAddresses();
   const { showToast } = useToast();
   const confirm = useConfirm();
 
@@ -52,6 +53,16 @@ function SavedAddressesSection() {
     showToast(`Saved "${record.name}"`, "success");
   };
 
+  const handleRestore = () => {
+    const added = restoreDefaults();
+    showToast(
+      added
+        ? `Added ${added} default address${added === 1 ? "" : "es"}`
+        : "All default addresses are already here",
+      "success",
+    );
+  };
+
   const handleRemove = async (a) => {
     if (!(await confirm(`Remove "${a.name}"?`))) return;
     removeAddress(a.id);
@@ -62,7 +73,7 @@ function SavedAddressesSection() {
     <Card
       title="Saved addresses"
       icon={MapPin}
-      description="Reused from order forms instead of retyping billing/shipping details. Stored in this browser only. US, UK, India and Australia examples are seeded on first run — edit or remove them, or add your own, and they all show up in the same picker on order forms."
+      description="Reused from order forms instead of retyping billing/shipping details. Stored in this browser only. US, UK, India, Australia, Canada, Germany, New Zealand and Singapore examples are seeded on first run (or use Restore below) — edit or remove them, or add your own, and they all show up in the same picker on order forms."
     >
       {addresses.length > 0 && (
         <ul className="space-y-2 mb-5">
@@ -91,9 +102,14 @@ function SavedAddressesSection() {
       )}
 
       {!expanded ? (
-        <Button variant="ghost" icon={Plus} onClick={() => setExpanded(true)}>
-          Add address
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="ghost" icon={Plus} onClick={() => setExpanded(true)}>
+            Add address
+          </Button>
+          <Button variant="ghost" icon={RotateCcw} onClick={handleRestore}>
+            Restore default addresses
+          </Button>
+        </div>
       ) : (
         <form onSubmit={handleAdd} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
